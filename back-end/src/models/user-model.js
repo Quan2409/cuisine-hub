@@ -20,6 +20,7 @@ const userSchema = new mongoose.Schema({
   password: {
     type: String,
     required: [true, "Password is required"],
+    minLength: [6, "Password length should be greater than 6"],
     select: true,
   },
 
@@ -30,6 +31,17 @@ const userSchema = new mongoose.Schema({
   avatar: {
     type: String,
   },
+
+  profession: {
+    type: String,
+  },
+
+  friends: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "user",
+    },
+  ],
 
   verified: {
     type: Boolean,

@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Reset Password</title>
+    <!-- font awesome -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+    />
+    <!-- fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900&display=swap"
+      rel="stylesheet"
+    />
+    <!-- css -->
+    <style>
+      body {
+        font-family: "Roboto", sans-serif;
+      }
+
+      h1 {
+        text-align: center;
+        color: #ffc300;
+      }
+
+      #resetForm {
+        margin: 100px auto;
+        border: 2px solid #ffc300;
+        border-radius: 5px;
+        padding: 10px;
+        width: 500px;
+      }
+
+      .hideForm {
+        display: none;
+      }
+
+      .hideError {
+        display: none;
+      }
+
+      input {
+        display: block;
+        border: 1px solid #000;
+        border-radius: 5px;
+        margin: 10px auto;
+        padding: 10px;
+        width: 200px;
+      }
+
+      button {
+        display: block;
+        margin: 20px auto;
+        border: 1px solid #ffc300;
+        border-radius: 5px;
+        padding: 10px;
+        width: 230px;
+        cursor: pointer;
+        color: #fff;
+        background-color: #ffc300;
+      }
+
+      button:hover {
+        background-color: #fff;
+        color: #ffc300;
+      }
+
+      #error {
+        margin: 0 auto;
+        width: 250px;
+        color: red;
+      }
+
+      #success {
+        margin: 0 auto;
+        width: 250px;
+        color: green;
+      }
+
+      #card {
+        margin: 150px auto;
+        border: 1px solid red;
+        border-radius: 5px;
+        padding: 20px;
+        width: 350px;
+      }
+
+      .ic-error {
+        display: block;
+        margin: 10px 0;
+        color: red;
+        font-size: 3rem;
+        text-align: center;
+      }
+
+      #statusMessage {
+        text-align: center;
+        font-weight: 500;
+        font-size: 1.5rem;
+      }
+    </style>
+  </head>
+  <body>
+    <div>
+      <form id="resetForm" class="">
+        <h1>Reset Password</h1>
+        <input
+          id="newPassword"
+          type="password"
+          placeholder="New Password"
+          required
+        />
+        <input
+          id="retypePassword"
+          type="password"
+          placeholder="Retype Password"
+          required
+        />
+        <div id="error"></div>
+        <div id="success"></div>
+        <button class="saveBtn">Save</button>
+      </form>
+      <div id="card">
+        <div class="icon">
+          <span id="statusIcon"></span>
+        </div>
+        <div id="statusMessage" class=""></div>
+      </div>
+    </div>
+
+    <script src="../reset.js"></script>
+  </body>
+</html>

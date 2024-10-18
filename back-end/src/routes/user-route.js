@@ -2,6 +2,7 @@ const express = require("express");
 const path = require("path");
 const router = express.Router();
 const { userController } = require("../controllers/user-controller");
+const authMiddleware = require("../middlewares/auth-middleware");
 
 // verify-email
 router.get("/verified/:userId/:token", userController.verifyEmail);
@@ -16,5 +17,8 @@ router.get("/reset-password", (req, res) => {
   res.sendFile(path.join(__dirname, "..", "views/build", "reset.html"));
 });
 router.post("/change-password", userController.changePassword);
+
+// user-profile
+router.get("user-profile/:id?", authMiddleware, userController.getUser);
 
 module.exports = router;

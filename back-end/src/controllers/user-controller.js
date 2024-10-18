@@ -55,8 +55,8 @@ const userController = {
 
   // handle reset-password-link
   handleResetLink: async (req, res) => {
-    const { userId, token } = req.params;
     try {
+      const { userId, token } = req.params;
       const userRecord = await userModal.findById(userId);
       if (!userRecord) {
         const message = "Invalid reset link";
@@ -107,6 +107,10 @@ const userController = {
       console.log(error);
       res.status(404).json({ message: error.message });
     }
+  },
+
+  getUser: async (req, res) => {
+    //
   },
 };
 

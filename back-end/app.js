@@ -21,7 +21,7 @@ const port = process.env.PORT || 4000;
 database();
 
 // config static
-app.use(express.static(path.join(__dirname, "views")));
+app.use(express.static(path.join(__dirname, "src", "views")));
 
 // app.use()
 app.use(morgan("dev"));

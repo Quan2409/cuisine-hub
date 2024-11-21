@@ -8,7 +8,7 @@ export default {
       secondaryColor: "rgb(var(--color-secondary) / <alpha-value>)",
       yellow: "rgb(var(--color-yellow) / <alpha-value>)",
       white: "rgb(var(--color-white) / <alpha-value>)",
-      white: "rgb(var(--color-black) / <alpha-value>)",
+      black: "rgb(var(--color-black) / <alpha-value>)",
       ascent: {
         1: "rgb(var(--color-ascent1) / <alpha-value>)",
         2: "rgb(var(--color-ascent2) / <alpha-value>)",

@@ -60,7 +60,7 @@ const ProfileCard = ({ user }) => {
         </div>
       </div>
 
-      <div className="w-full flex flex-col gap-2 py-4 border-b border-[#66666645]">
+      <div className="w-full flex flex-col gap-2 py-4 ">
         <p className="text-xl text-ascent-1 font-semibold">
           {user.friends.length} Friends
         </p>
@@ -77,10 +77,6 @@ const ProfileCard = ({ user }) => {
           </span>
         </div>
       </div>
-
-      {/* <div className="w-full flex flex-col gap-4 py-4 pb-6">
-        <p>Social Profile</p>
-      </div> */}
     </div>
   );
 };

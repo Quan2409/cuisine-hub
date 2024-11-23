@@ -1,8 +1,12 @@
 import { configureStore } from "@reduxjs/toolkit";
-import { rootReducer } from "./reducer";
+import { userSlice } from "./slice/userSlice";
+import { themeSlice } from "./slice/themeSlice";
+import { postSlice } from "./slice/postSlice";
 
-const store = configureStore({
-  reducer: rootReducer,
+export const store = configureStore({
+  reducer: {
+    user: userSlice.reducer,
+    theme: themeSlice.reducer,
+    post: postSlice.reducer,
+  },
 });
-
-export default store;

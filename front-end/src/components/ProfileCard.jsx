@@ -1,11 +1,12 @@
-import React from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Link } from "react-router-dom";
 import { LiaEdit } from "react-icons/lia";
 import { CiLocationOn } from "react-icons/ci";
 import { BsPersonFillAdd, BsBriefcase } from "react-icons/bs";
-import { UpdateProfile } from "../redux/slice/userSlice";
 import moment from "moment";
+
+import { userSlice } from "../redux/slice/userSlice";
+const { updateProfile } = userSlice.actions;
 
 const ProfileCard = ({ user }) => {
   const { user: data, edit } = useSelector((state) => state.user);
@@ -36,7 +37,7 @@ const ProfileCard = ({ user }) => {
             <LiaEdit
               className="text-yellow cursor-pointer"
               size={22}
-              onClick={() => dispatch(UpdateProfile(true))}
+              onClick={() => dispatch(updateProfile(true))}
             />
           ) : (
             <button

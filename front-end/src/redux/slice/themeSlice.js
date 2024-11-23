@@ -4,7 +4,7 @@ const initialState = {
   theme: JSON.parse(window?.localStorage.getItem("theme")) ?? "dark",
 };
 
-const themeSlice = createSlice({
+export const themeSlice = createSlice({
   name: "theme",
   initialState,
   reducers: {
@@ -15,10 +15,8 @@ const themeSlice = createSlice({
   },
 });
 
-export default themeSlice.reducer;
-
-export function SetTheme(value) {
-  return (dispatch) => {
-    dispatch(themeSlice.actions.setTheme(value));
-  };
-}
+// export function SetTheme(value) {
+//   return (dispatch) => {
+//     dispatch(themeSlice.actions.setTheme(value));
+//   };
+// }

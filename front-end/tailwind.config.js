@@ -26,7 +26,6 @@ export default {
 
       xxl: "1536px",
     },
-
     extend: {},
   },
   plugins: [],

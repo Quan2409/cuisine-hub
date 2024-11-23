@@ -4,7 +4,7 @@ const initialState = {
   posts: {},
 };
 
-const postSlice = createSlice({
+export const postSlice = createSlice({
   name: "post",
   initialState,
   reducers: {
@@ -14,10 +14,8 @@ const postSlice = createSlice({
   },
 });
 
-export default postSlice.reducer;
-
-export function SetPost(post) {
-  return (dispatch, getState) => {
-    dispatch(postSlice.actions.getPosts(post));
-  };
-}
+// export function SetPost(post) {
+//   return (dispatch, getState) => {
+//     dispatch(postSlice.actions.getPosts(post));
+//   };
+// }

@@ -3,13 +3,15 @@ import { Link } from "react-router-dom";
 import { BiLike, BiSolidLike, BiComment } from "react-icons/bi";
 import { MdOutlineDeleteOutline } from "react-icons/md";
 import moment from "moment";
+
 import CommentForm from "./CommentForm";
+import ReplyCard from "./ReplyCard";
 
 import { postComments } from "../assets/data";
 
 const PostCard = ({ post, user, deletePost, likePost }) => {
   const [showAll, setShowAll] = useState(0);
-  const [showreply, setShowReply] = useState(0);
+  const [showReply, setShowReply] = useState(0);
   const [comment, setComments] = useState([]);
   const [isLoad, setIsLoad] = useState(false);
   const [replyComments, setReplyComment] = useState(0);
@@ -19,6 +21,10 @@ const PostCard = ({ post, user, deletePost, likePost }) => {
     setReplyComment(0);
     setComments(postComments);
     setIsLoad(false);
+  };
+
+  const handleLike = async () => {
+    //
   };
 
   return (
@@ -139,6 +145,69 @@ const PostCard = ({ post, user, deletePost, likePost }) => {
                       {moment(comment.createdAt).fromNow()}
                     </span>
                   </div>
+                </div>
+
+                <div className="ml-14">
+                  <p className="text-ascent-2">{comment.comment}</p>
+                  <div className="mt-2 flex gap-6">
+                    <div className="flex gap-2 items-center text-base text-ascent-2 cursor pointer">
+                      {comment.likes.includes(user._id) ? (
+                        <BiSolidLike size={20} color="yellow" />
+                      ) : (
+                        <BiLike size={20} />
+                      )}
+                      {comment.likes.length} Likes
+                    </div>
+                    <span
+                      className="text-yellow cursor-pointer"
+                      onClick={() => setReplyComment(comment._id)}
+                    >
+                      Reply
+                    </span>
+                  </div>
+
+                  {replyComments === comment._id && (
+                    <CommentForm
+                      user={user}
+                      id={comment._id}
+                      replyAt={comment.form}
+                      getComments={() => getComments(post._id)}
+                    />
+                  )}
+                </div>
+
+                <div className="py-2 px-8 mt-6">
+                  {comment.replies.length > 0 && (
+                    <div
+                      className="text-base text-ascent-1 cursor-pointer"
+                      onClick={() =>
+                        setShowReply(
+                          showReply === comment.replies._id
+                            ? 0
+                            : comment.replies._id
+                        )
+                      }
+                    >
+                      Show Replies ({comment.replies.length})
+                    </div>
+                  )}
+
+                  {showReply === comment.replies._id &&
+                    comment.replies.map((reply) => (
+                      <ReplyCard
+                        reply={reply}
+                        user={user}
+                        key={reply._id}
+                        handleLike={() =>
+                          handleLike(
+                            "/posts/like-comment/" +
+                              comment._id +
+                              "/" +
+                              reply._id
+                          )
+                        }
+                      />
+                    ))}
                 </div>
               </div>
             ))

@@ -4,10 +4,14 @@ import { BsSunFill, BsMoon } from "react-icons/bs";
 import { useForm } from "react-hook-form";
 import { useDispatch, useSelector } from "react-redux";
 import { Link } from "react-router-dom";
-import { SetTheme } from "../redux/slice/themeSlice";
-import { UserLogOut } from "../redux/slice/userSlice";
 import TextInput from "./TextInput";
 import Button from "./Button";
+
+import { themeSlice } from "../redux/slice/themeSlice";
+import { userSlice } from "../redux/slice/userSlice";
+
+const { setTheme } = themeSlice.actions;
+const { logout } = userSlice.actions;
 
 const TopBar = () => {
   const {
@@ -26,7 +30,7 @@ const TopBar = () => {
 
   const handleTheme = () => {
     const themeValue = theme === "light" ? "dark" : "light";
-    dispatch(SetTheme(themeValue));
+    dispatch(setTheme(themeValue));
   };
 
   return (
@@ -63,7 +67,7 @@ const TopBar = () => {
 
         <div>
           <Button
-            onClick={() => dispatch(UserLogOut())}
+            onClick={() => dispatch(logout())}
             title="Log Out"
             containerStyle="text-sm text-ascent-1 px-4 md:px-6 py-1 md:py-2 border border-[#666] rounded-full"
           />

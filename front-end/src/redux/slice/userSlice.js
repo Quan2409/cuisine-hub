@@ -6,7 +6,7 @@ const initialState = {
   edit: false,
 };
 
-const userSlice = createSlice({
+export const userSlice = createSlice({
   name: "user",
   initialState,
   reducers: {
@@ -25,23 +25,3 @@ const userSlice = createSlice({
     },
   },
 });
-
-export default userSlice.reducer;
-
-export function UserLogIn(user) {
-  return (dispatch, getState) => {
-    dispatch(userSlice.actions.login(user));
-  };
-}
-
-export function UserLogOut() {
-  return (dispatch, getState) => {
-    dispatch(userSlice.actions.logout());
-  };
-}
-
-export function UpdateProfile(val) {
-  return (dispatch, getState) => {
-    dispatch(userSlice.actions.updateProfile(val));
-  };
-}

@@ -1,0 +1,32 @@
+.box-error {
+  margin: 20px auto;
+  border-radius: 5px;
+  margin: 150px auto;
+  width: 600px;
+  background-color: #fff;
+  padding: 20px;
+}
+
+.error__title {
+  font-size: 2rem;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.error__desc {
+  margin: 20px auto;
+  width: 400px;
+  text-align: center;
+}
+
+.error__btn {
+  display: block;
+  margin: 0 auto;
+  border-radius: 5px;
+  padding: 15px;
+  width: 350px;
+  text-align: center;
+  text-transform: uppercase;
+  font-weight: 600;
+  background-color: #fff242;
+}

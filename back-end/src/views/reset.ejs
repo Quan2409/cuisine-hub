@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Reset Password</title>
+    <!-- font awesome -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+    />
+    <!-- css -->
+    <link rel="stylesheet" href="/css/style.css" />
+  </head>
+  <body>
+    <section class="reset">
+      <form action="" method="post" class="form__reset">
+        <h1>Cusine Hub Change Password</h1>
+        <div class="form__group">
+          <input
+            type="password"
+            name="password"
+            placeholder="New Password"
+            class="password-input"
+          />
+          <p class="password-error"></p>
+        </div>
+
+        <div class="form__group">
+          <input
+            type="password"
+            name="retype"
+            placeholder="Confirm New Password"
+            class="retype-input"
+          />
+          <p class="retype-error"></p>
+        </div>
+        <div class="form__group">
+          <button type="submit">Save Password</button>
+        </div>
+      </form>
+    </section>
+    <script src="/js/reset.js"></script>
+  </body>
+</html>

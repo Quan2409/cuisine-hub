@@ -1,19 +1,19 @@
 const mongoose = require("mongoose");
 
 const requestSchema = new mongoose.Schema({
-  receiver: {
+  request_receiver: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: "user",
+    ref: "users",
   },
 
   request_from: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: "user",
+    ref: "users",
   },
 
   request_status: {
     type: String,
-    default: "pending",
+    default: "pending..",
   },
 });
 

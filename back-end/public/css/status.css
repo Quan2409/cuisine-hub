@@ -1,0 +1,55 @@
+.status__card {
+  margin: 150px auto;
+  width: 600px;
+  border-radius: 5px;
+  padding: 20px;
+  background-color: #fff;
+}
+
+.card-success {
+  border: 2px solid #ffc300;
+}
+
+.card-error {
+  border: 2px solid red;
+}
+
+#status__message {
+  text-align: center;
+  font-weight: 500;
+  font-size: 2rem;
+}
+
+.ic-success {
+  display: block;
+  margin: 10px 0;
+  color: green;
+  font-size: 3rem;
+  text-align: center;
+}
+
+.ic-error {
+  display: block;
+  margin: 10px 0;
+  color: #ff3346;
+  font-size: 3rem;
+  text-align: center;
+}
+
+.showBtn {
+  display: block;
+  margin: 20px auto;
+  border: 1px solid #ffc300;
+  border-radius: 5px;
+  padding: 15px;
+  width: 350px;
+  font-weight: 600;
+  text-transform: uppercase;
+  text-decoration: none;
+  text-align: center;
+  background-color: #ffc300;
+}
+
+.hideBtn {
+  display: none;
+}

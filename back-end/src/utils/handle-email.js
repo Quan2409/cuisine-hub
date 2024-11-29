@@ -19,16 +19,18 @@ const transporter = nodemailer.createTransport({
 const sendVerificationEmail = async (user, res) => {
   const { _id, email, lastName } = user;
   const token = _id + createUUID();
-  const link = process.env.APP_URL + "/user/verified/" + _id + "/" + token;
+  console.log(process.env.APP_URL);
+
+  const link = process.env.APP_URL + "user/verify/" + _id + "/" + token;
 
   const mailOption = {
     from: process.env.AUTH_EMAIL,
     to: email,
-    subject: "Cuisine Hub - Account Verification",
+    subject: "Cuisine-Hub - Account Verfication",
     html: `
-      <div style="border-radius: 5px; padding: 20px; font-family: Arial, sans-serif; font-size: 20px; color: #333; background-color: #f7f7f7;">
+    <div style="border-radius: 5px; padding: 20px; font-family: Arial, sans-serif; font-size: 20px; color: #333; background-color: #f7f7f7;">
       <h3 style="color: #ffd700; font-size: 2rem">
-        Please verify your email address
+        Please Verify Your Email Address
       </h3>
       <hr />
       <h4>Hi ${lastName},</h4>
@@ -43,7 +45,7 @@ const sendVerificationEmail = async (user, res) => {
       <div style="margin-top: 60px">
         <h5>Best Regards</h5>
       </div>
-      </div>
+    </div>
     `,
   };
 
@@ -78,8 +80,7 @@ const sendVerificationEmail = async (user, res) => {
 const sendResetPassword = async (user, res) => {
   const { _id, email } = user;
   const token = _id + createUUID();
-  const link =
-    process.env.APP_URL + "/user/reset-password/" + _id + "/" + token;
+  const link = process.env.APP_URL + "user/reset-password/" + _id + "/" + token;
 
   const mailOption = {
     from: process.env.AUTH_EMAIL,

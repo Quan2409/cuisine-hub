@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 
-const passwordSchema = new mongoose.Schema({
+const resetPasswordSchema = new mongoose.Schema({
   userId: {
     type: String,
   },
@@ -23,5 +23,5 @@ const passwordSchema = new mongoose.Schema({
   },
 });
 
-const passwordModal = mongoose.model("resetPassword", passwordSchema);
-module.exports = passwordModal;
+const resetModal = mongoose.model("reset-passwords", resetPasswordSchema);
+module.exports = resetModal;

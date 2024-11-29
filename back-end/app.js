@@ -7,7 +7,7 @@ const bodyParser = require("body-parser");
 const createError = require("http-errors");
 const helmet = require("helmet");
 const database = require("./src/config/database-config");
-const router = require("./src/routes/index-route");
+const indexRouter = require("./src/routes/index-route");
 const errorMiddleware = require("./src/middlewares/error-middleware");
 
 // config dotenv
@@ -15,7 +15,6 @@ dotenv.config();
 
 // config app
 const app = express();
-const port = process.env.PORT || 4000;
 
 // config database
 database();
@@ -23,24 +22,34 @@ database();
 // config static
 app.use(express.static(path.join(__dirname, "src", "views")));
 
-// app.use()
-app.use(morgan("dev"));
-app.use(helmet());
+// config tempalte engine
+app.set("view engine", "ejs");
+app.set("views", "./src/views");
+
+// config static file
+app.use(express.static("public"));
+
+// confid body-parser
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
-app.use(express.json({ limit: "10mb" }));
-app.use(express.urlencoded({ extended: true }));
+
+//config morgan
+app.use(morgan("dev"));
+
+// config helmet
+app.use(helmet());
 
 // config route
-app.use(router);
+app.use(indexRouter);
 app.use(errorMiddleware);
 
 // handle 404 error
 app.use((req, res, next) => {
-  next(createError(404));
+  res.status(404).render("error", { layout: false });
 });
 
 // http server
+const port = 3500;
 app.listen(port, () => {
   console.log(`HTTP server is running on: http://localhost:${port}`);
 });

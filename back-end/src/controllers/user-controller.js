@@ -1,37 +1,53 @@
 const userModal = require("../models/user-model");
 const verifyModal = require("../models/verify-model");
 const resetModal = require("../models/reset-model");
+const friendModal = require("../models/friend-model");
 const { compareString, hashString } = require("../utils/handle-string");
+const createToken = require("../utils/handle-token");
 const { sendResetPassword } = require("../utils/handle-email");
 
 const userController = {
+  //view status page
+  viewStatus: (req, res) => {
+    res.render("status", { layout: false });
+  },
+
+  //view reset page
+  viewResetPage: (req, res) => {
+    res.render("reset", { layout: false });
+  },
+
   // verify account
   verifyEmail: async (req, res, next) => {
+    // get id, and token from url
     const { userId, token } = req.params;
     try {
+      // query data to fine request base on id
       const emailRecord = await verifyModal.findOne({ userId });
       if (!emailRecord) {
         const message = "No verification found";
-        return res.redirect(`/user/verified?status=error&message=${message}`);
+        return res.redirect(`/user/verify?status=error&message=${message}`);
       }
 
+      // query data to check if token is expries or not
       const { expiredAt, token: hashedToken } = emailRecord;
       if (expiredAt < Date.now()) {
         await verifyModal.findOneAndDelete({ userId });
         await userModal.findOneAndDelete({ _id: userId });
         const message = "Token has expired";
-        res.redirect(`/user/verified?status=error&message=${message}`);
+        res.redirect(`/user/verify?status=error&message=${message}`);
       }
 
+      // compare token with the token is hashed from database
       const isMatch = await compareString(token, hashedToken);
       if (isMatch) {
         await userModal.findOneAndUpdate({ _id: userId }, { verified: true });
-        await verifyModal.findOneAndUpdate({ userId });
+        await verifyModal.findOneAndDelete({ userId });
         const message = "Email Verified Success";
-        res.redirect(`/user/verified?status=success&message=${message}`);
+        res.redirect(`/user/verify?status=success&message=${message}`);
       } else {
         const message = "Invalid verify link";
-        res.redirect(`/user/verified?status=error&message=${message}`);
+        res.redirect(`/user/verify?status=error&message=${message}`);
       }
     } catch (error) {
       console.log(error);
@@ -42,11 +58,20 @@ const userController = {
   // send-reset-password-link
   sendResetLink: async (req, res, next) => {
     const { email } = req.body;
+    // email validation
+    if (!email) {
+      next("Enter your email, please");
+      return;
+    } else if (!/^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/.test(email)) {
+      next("Email is wrong format, try again");
+      return;
+    }
+
     const userRecord = await userModal.findOne({ email });
     if (!userRecord) {
       return res.status(404).json({
-        status: "Failed",
-        message: "Email address not found",
+        status: false,
+        message: "Email not found, please try again",
       });
     } else {
       await sendResetPassword(userRecord, res);
@@ -59,32 +84,40 @@ const userController = {
       const { userId, token } = req.params;
       const userRecord = await userModal.findById(userId);
       if (!userRecord) {
-        const message = "Invalid reset link";
-        res.redirect(`/user/reset-password?status=error&message=${message}`);
+        const message = "No reset request found";
+        return res.redirect(
+          `/user/reset-status?status=error&message=${message}`
+        );
       }
 
       const resetRecord = await resetModal.findOne({ userId });
       if (!resetRecord) {
-        const message = "Invalid reset link";
-        res.redirect(`/user/reset-password?status=error&message=${message}`);
+        const message = "Reset request is not found";
+        return res.redirect(
+          `/user/reset-status?status=error&message=${message}`
+        );
       }
 
       const { expiredAt, token: hashedToken } = resetRecord;
       if (expiredAt < Date.now()) {
         const message = "Reset password link has expired";
-        res.redirect(`/user/reset-password?status=error&message=${message}`);
+        return res.redirect(
+          `/user/reset-status?status=error&message=${message}`
+        );
       }
 
       const isMatch = await compareString(token, hashedToken);
       if (isMatch) {
-        res.redirect(`/user/reset-password?type=reset&id=${userId}`);
+        return res.redirect(`/user/reset-password?type=reset&id=${userId}`);
       } else {
         const message = "Invalid reset link";
-        res.redirect(`/user/reset-password?status=error&message=${message}`);
+        return res.redirect(
+          `/user/reset-status?status=error&message=${message}`
+        );
       }
     } catch (error) {
       console.log(error);
-      res.status(404).json({ message: error.message });
+      return res.status(404).json({ message: error.message });
     }
   },
 
@@ -99,7 +132,7 @@ const userController = {
       );
       if (updateUser) {
         await resetModal.findOneAndDelete(userId);
-        res.status(200).json({
+        return res.status(200).json({
           ok: true,
         });
       }
@@ -109,8 +142,248 @@ const userController = {
     }
   },
 
+  // handle get all user profile
   getUser: async (req, res) => {
-    //
+    try {
+      const { id } = req.params;
+      const { userId } = req.body.user;
+      const userRecord = await userModal.findById(id ?? userId).populate({
+        path: "friends",
+        select: "-password",
+      });
+
+      if (!userRecord) {
+        return res.status(404).json({
+          status: false,
+          message: "User not found",
+        });
+      } else {
+        return res.status(200).json({
+          status: true,
+          user: userRecord,
+        });
+      }
+    } catch (error) {
+      console.log(error);
+      return res.status(500).json({
+        status: false,
+        messsage: error.message,
+      });
+    }
+  },
+
+  // handle update user profile
+  updateUser: async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { firstName, lastName, location, avatar, profession } = req.body;
+      if (!(firstName || lastName || location || avatar || profession)) {
+        next("Pleast provide all required fields");
+        return;
+      }
+
+      const updateUser = {
+        _id: id,
+        firstName,
+        lastName,
+        location,
+        avatar,
+        profession,
+      };
+
+      const userRecord = await userModal
+        .findByIdAndUpdate(id, updateUser)
+        .populate({
+          path: "friends",
+          select: "-password",
+        });
+
+      const token = createToken(userRecord._id);
+      return res.status(200).json({
+        status: true,
+        message: "User is updated",
+        userRecord,
+        token,
+      });
+    } catch (error) {
+      console.log(error);
+      res.status(404).json({
+        status: false,
+        message: error.message,
+      });
+    }
+  },
+
+  // handle sent friend request
+  sendFriendRequest: async (req, res, next) => {
+    try {
+      const { userId } = req.body.user;
+      const { request_receiver } = req.body;
+
+      const requestModal = await friendModal.findOne({
+        request_from: userId,
+        request_receiver,
+      });
+
+      const accountExist = await friendModal.findOne({
+        request_from: request_receiver,
+        request_receiver: userId,
+      });
+
+      if (requestModal || accountExist) {
+        next("Friend Request already send");
+        return;
+      } else {
+        const newRequest = await friendModal.create({
+          request_receiver,
+          request_from: userId,
+        });
+        if (newRequest) {
+          return res.status(201).json({
+            status: true,
+            message: "Friend request sent succesfully",
+          });
+        }
+      }
+    } catch (error) {
+      console.log(error);
+      res.status(404).json({
+        status: false,
+        message: error.message,
+      });
+    }
+  },
+
+  // handle get friend request
+  getFriendRequest: async (req, res) => {
+    try {
+      const { userId } = req.body.user;
+
+      const filterRequest = await friendModal
+        .find({
+          request_receiver: userId,
+          request_status: "pending..",
+        })
+        .populate({
+          path: "request_from",
+          select: "firstName lastName avatar profession -password ",
+        })
+        .limit(10)
+        .sort({
+          _id: -1,
+        });
+
+      if (filterRequest) {
+        return res.status(200).json({
+          status: true,
+          requests: filterRequest,
+        });
+      }
+    } catch (error) {
+      console.log(error);
+      res.status(404).json({
+        status: false,
+        message: error.message,
+      });
+    }
+  },
+
+  // handle request accpeted
+  acceptRequest: async (req, res) => {
+    try {
+      const { userId } = req.body.user;
+      const { request_id, request_status } = req.body;
+
+      const isRequestExist = await friendModal.findById(request_id);
+      if (!isRequestExist) {
+        next("No friend request found");
+        return;
+      } else {
+        const newRequest = await friendModal.findByIdAndUpdate({
+          _id: request_id,
+          request_status: request_status,
+        });
+
+        if (request_status === "Accepted") {
+          const userRecord = await userModal.findById(userId);
+
+          userRecord.friends.push(newRequest.request_from);
+          await userRecord.save();
+
+          const friendRecord = await userModal.findById(
+            newRequest.request_from
+          );
+
+          friendRecord.friends.push(newRequest.request_receiver);
+          await friendRecord.save();
+          await friendModal.findByIdAndDelete(request_id);
+        }
+
+        return res.status(201).json({
+          status: true,
+          message: "Friend request " + request_status,
+        });
+      }
+    } catch (error) {
+      console.log(error);
+      res.status(404).json({
+        status: false,
+        message: error.message,
+      });
+    }
+  },
+
+  // handle viewer who watch profile
+  viewProfile: async (req, res) => {
+    try {
+      const { userId } = req.body.user;
+      const { id } = req.body;
+      const userRecord = await userModal.findById(id);
+      userRecord.views.push(userId);
+      await userRecord.save();
+
+      if (userRecord) {
+        return res.status(201).json({
+          status: true,
+          message: "You have viewed profile" + userId,
+        });
+      }
+    } catch (error) {
+      console.log(error);
+      res.status(404).json({
+        status: false,
+        message: error.message,
+      });
+    }
+  },
+
+  // handle friend suggestion
+  suggestFriend: async (req, res) => {
+    try {
+      const { userId } = req.body.user;
+
+      let queryObject = {};
+      queryObject._id = { $ne: userId };
+      queryObject.friends = { $nin: userId };
+
+      let queryResults = await userModal
+        .find(queryObject)
+        .limit(15)
+        .select("firstName lastName avatar location profession -password");
+
+      if (queryResults) {
+        return res.status(200).json({
+          status: true,
+          friends: queryResults,
+        });
+      }
+    } catch (error) {
+      console.log(error);
+      return res.status(404).json({
+        status: false,
+        message: error.message,
+      });
+    }
   },
 };
 

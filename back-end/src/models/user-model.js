@@ -3,45 +3,45 @@ const mongoose = require("mongoose");
 const userSchema = new mongoose.Schema({
   firstName: {
     type: String,
-    required: [true, "Firs name is required"],
   },
 
   lastName: {
     type: String,
-    required: [true, "Last name is required"],
   },
 
   email: {
     type: String,
-    required: [true, "Email is required"],
     unique: true,
   },
 
   password: {
     type: String,
-    required: [true, "Password is required"],
-    minLength: [6, "Password length should be greater than 6"],
     select: true,
   },
 
   location: {
     type: String,
+    default: "No Location",
   },
 
   avatar: {
     type: String,
+    default: "/user.png",
   },
 
   profession: {
     type: String,
+    default: "No Profession",
   },
 
   friends: [
     {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "user",
+      ref: "users",
     },
   ],
+
+  views: [{ type: String }],
 
   verified: {
     type: Boolean,
@@ -49,5 +49,5 @@ const userSchema = new mongoose.Schema({
   },
 });
 
-const userModal = mongoose.model("user", userSchema);
+const userModal = mongoose.model("users", userSchema);
 module.exports = userModal;

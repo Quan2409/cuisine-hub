@@ -9,13 +9,13 @@ import { userSlice } from "../redux/slice/userSlice";
 const { updateProfile } = userSlice.actions;
 
 const ProfileCard = ({ user }) => {
-  const { user: data, edit } = useSelector((state) => state.user);
+  const { user: data } = useSelector((state) => state.user);
   const dispatch = useDispatch();
 
   return (
     <div className="w-full bg-primaryColor flex flex-col items-center shadow-sm rounded-xl px-6 py-4">
       <div className="w-full flex items-center justify-between border-b pb-5 border-[#66666645]">
-        <Link to={`/prodile/` + user._id} className="flex gap-2">
+        <Link className="flex gap-2" to={"/profile/" + user._id}>
           <img
             src={user.profileUrl ?? "/user.png"}
             alt={user.email}
@@ -42,7 +42,7 @@ const ProfileCard = ({ user }) => {
           ) : (
             <button
               className="bg-[#0444a430] text-sm text-white p-2 rounded"
-              onClick={() => {}}
+              onClick={() => dispatch(updateProfile(false))}
             >
               <BsPersonFillAdd size={22} className="text-yellow" />
             </button>

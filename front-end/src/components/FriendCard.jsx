@@ -12,7 +12,7 @@ const FriendCard = ({ friends }) => {
       <div className="w-full flex flex-col gap-4 pt-4">
         {friends.map((friend) => (
           <Link
-            to={"/profile/" + friends._id}
+            to={"/profile/" + friend._id}
             key={friend._id}
             className="w-full flex gap-4 items-center cursor-pointer"
           >

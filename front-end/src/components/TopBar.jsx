@@ -37,7 +37,7 @@ const TopBar = () => {
     <div className="topbar w-full flex items-center justify-between mt-2 py-3 md:py-6 px-4 bg-primaryColor rounded-xl">
       <Link to="/" className="flex gap-2 items-center">
         <div className="p-1 md:p-2 bg-[#fff242] rounded text-black">
-          <TbSocial />
+          <img src="/logo.png" alt="logo" className="w-5 h-5" />
         </div>
         <span className="text-xl md:text-2xl text-[#fff242] font-semibold">
           Cuisine Hub
@@ -50,13 +50,13 @@ const TopBar = () => {
       >
         <TextInput
           placeholder="Search..."
-          styles="w-[18rem] lg:w-[38rem] rounded-l-full py-3"
+          styles="w-[18rem] lg:w-[38rem] rounded-l-full py-3 "
           register={register("search")}
         />
         <Button
           title="Search"
           type="submit"
-          containerStyle="bg-[#fff242] text-black px-6 py-3 mt-2 rounded-r-full"
+          containerStyle="bg-[#fff242] text-black px-6 py-3 mt-2 rounded-r-full font-semibold"
         />
       </form>
 

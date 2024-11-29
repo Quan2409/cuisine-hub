@@ -7,6 +7,6 @@ export const store = configureStore({
   reducer: {
     user: userSlice.reducer,
     theme: themeSlice.reducer,
-    post: postSlice.reducer,
+    posts: postSlice.reducer,
   },
 });

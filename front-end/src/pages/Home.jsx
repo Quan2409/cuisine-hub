@@ -1,10 +1,8 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { useSelector } from "react-redux";
-
 import { Link } from "react-router-dom";
 import { useForm } from "react-hook-form";
-import { BiImageAdd, BiVideoPlus } from "react-icons/bi";
-import { BsFiletypeGif } from "react-icons/bs";
+import { BiImageAdd } from "react-icons/bi";
 
 import Button from "../components/Button";
 import TextInput from "../components/TextInput";
@@ -94,38 +92,6 @@ const Home = () => {
                   <span>Image</span>
                 </label>
 
-                <label
-                  htmlFor="video-upload"
-                  className="flex items-center gap-1 text-base text-ascent-2 hover:text-ascent-1 cursor-pointer"
-                >
-                  <input
-                    type="file"
-                    onChange={(e) => setFile(e.target.files[0])}
-                    className="hidden"
-                    id="video-upload"
-                    data-max-size="5120"
-                    accept=".mp4, .wav"
-                  />
-                  <BiVideoPlus />
-                  <span>Video</span>
-                </label>
-
-                <label
-                  htmlFor="video-upload"
-                  className="flex items-center gap-1 text-base text-ascent-2 hover:text-ascent-1 cursor-pointer"
-                >
-                  <input
-                    type="file"
-                    onChange={(e) => setFile(e.target.files[0])}
-                    className="hidden"
-                    id="video-upload"
-                    data-max-size="5120"
-                    accept=".mp4, .wav"
-                  />
-                  <BsFiletypeGif />
-                  <span>Gif</span>
-                </label>
-
                 {isPost ? (
                   <Loading />
                 ) : (
@@ -194,7 +160,7 @@ const Home = () => {
 
                       <Button
                         title="Deny"
-                        containerStyle="w-[60px] bg-[#666] text-xs text-ascent-1 px-2 py-2 rounded-full"
+                        containerStyle="w-[60px] bg-[#a6acaf] text-xs text-black px-2 py-2 rounded-full"
                       />
                     </div>
                   </div>

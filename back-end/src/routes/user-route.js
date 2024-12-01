@@ -1,5 +1,4 @@
 const express = require("express");
-const path = require("path");
 const router = express.Router();
 const { userController } = require("../controllers/user-controller");
 const authMiddleware = require("../middlewares/auth-middleware");
@@ -19,19 +18,21 @@ router.post("/change-password", userController.changePassword);
 router.get("/get-user/:id?", authMiddleware, userController.getUser);
 router.put("/update-user/:id", authMiddleware, userController.updateUser);
 
-// friend request
+// send friend request
 router.post(
   "/friend-request",
   authMiddleware,
   userController.sendFriendRequest
 );
 
+// get friend request
 router.get(
   "/get-friend-request",
   authMiddleware,
   userController.getFriendRequest
 );
 
+// accept / deny friend request
 router.post("/accept-request", authMiddleware, userController.acceptRequest);
 
 // profile viewer

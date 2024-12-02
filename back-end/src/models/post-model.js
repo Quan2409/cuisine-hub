@@ -25,6 +25,10 @@ const postSchema = new mongoose.Schema({
       type: mongoose.Schema.Types.ObjectId,
     },
   ],
+
+  createdAt: {
+    type: Date,
+  },
 });
 
 const postModal = mongoose.model("posts", postSchema);

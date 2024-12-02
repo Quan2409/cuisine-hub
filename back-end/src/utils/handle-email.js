@@ -65,9 +65,6 @@ const sendVerificationEmail = async (user, res) => {
             message: `Sending message fail: ${error}`,
           });
         }
-        res.status(201).send({
-          message: "Verification email has been sent to your email",
-        });
       });
     }
   } catch (error) {
@@ -113,10 +110,6 @@ const sendResetPassword = async (user, res) => {
 
     if (newRequest) {
       await transporter.sendMail(mailOption);
-      res.status(201).send({
-        status: "Pending...",
-        message: "Reset password link has been sent",
-      });
     }
   } catch (error) {
     console.log(error);

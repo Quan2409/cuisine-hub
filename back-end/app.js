@@ -16,6 +16,9 @@ dotenv.config();
 // config app
 const app = express();
 
+// config cors
+app.use(cors());
+
 // config database
 database();
 

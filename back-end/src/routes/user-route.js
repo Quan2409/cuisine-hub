@@ -15,8 +15,8 @@ router.get("/reset-status", userController.viewStatus);
 router.post("/change-password", userController.changePassword);
 
 // user-profile
-router.get("/get-user/:id?", authMiddleware, userController.getUser);
-router.put("/update-user/:id", authMiddleware, userController.updateUser);
+router.get("/get-user/:id", authMiddleware, userController.getUser);
+router.put("/update-user", authMiddleware, userController.updateUser);
 
 // send friend request
 router.post(

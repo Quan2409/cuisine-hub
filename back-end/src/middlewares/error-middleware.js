@@ -12,16 +12,6 @@ const errorMiddleware = (error, req, res, next) => {
       .join(",");
   }
 
-  //check duplicate
-  if (error.code === 11000) {
-    defaultError.code = 404;
-    defaultError.message = `${Object.values(
-      error.keyValue
-    )} field has to be unique`;
-  }
-
-  console.log(error);
-
   res.status(defaultError.code).json({
     status: defaultError.status,
     message: defaultError.message,

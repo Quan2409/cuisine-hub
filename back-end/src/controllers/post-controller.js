@@ -18,6 +18,7 @@ const postController = {
         userId,
         content,
         image,
+        createdAt: Date.now(),
       });
       console.log(userId);
       return res.status(201).json({

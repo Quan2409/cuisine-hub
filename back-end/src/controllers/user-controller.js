@@ -58,23 +58,24 @@ const userController = {
   // send-reset-password-link
   sendResetLink: async (req, res, next) => {
     const { email } = req.body;
-    // email validation
-    if (!email) {
-      next("Enter your email, please");
-      return;
-    } else if (!/^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/.test(email)) {
-      next("Email is wrong format, try again");
-      return;
-    }
-
     const userRecord = await userModal.findOne({ email });
-    if (!userRecord) {
-      return res.status(404).json({
-        status: false,
-        message: "Email not found, please try again",
-      });
-    } else {
+    try {
+      if (!userRecord) {
+        return res.status(404).json({
+          status: false,
+          message: "Email not found, please try again",
+        });
+      }
       await sendResetPassword(userRecord, res);
+      return res.status(201).json({
+        status: true,
+        message: "Reset password link has been sent",
+      });
+    } catch (error) {
+      console.log(error);
+      return res.status(404).json({
+        message: error.message,
+      });
     }
   },
 
@@ -174,16 +175,11 @@ const userController = {
 
   // handle update user profile
   updateUser: async (req, res) => {
+    const { userId } = req.body.user;
+    const { firstName, lastName, profession, location, avatar } = req.body;
     try {
-      const { id } = req.params;
-      const { firstName, lastName, location, avatar, profession } = req.body;
-      if (!(firstName || lastName || location || avatar || profession)) {
-        next("Pleast provide all required fields");
-        return;
-      }
-
       const updateUser = {
-        _id: id,
+        _id: userId,
         firstName,
         lastName,
         location,
@@ -191,12 +187,10 @@ const userController = {
         profession,
       };
 
-      const userRecord = await userModal
-        .findByIdAndUpdate(id, updateUser)
-        .populate({
-          path: "friends",
-          select: "-password",
-        });
+      const userRecord = await userModal.findByIdAndUpdate(userId, updateUser, {
+        new: true,
+      });
+      await userRecord.populate({ path: "friends", select: "-password" });
 
       const token = createToken(userRecord._id);
       return res.status(200).json({

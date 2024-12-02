@@ -24,7 +24,6 @@ const commentSchema = new mongoose.Schema({
 
   from: {
     type: String,
-    required: true,
   },
 
   replies: [

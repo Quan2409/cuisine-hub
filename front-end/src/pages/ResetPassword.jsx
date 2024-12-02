@@ -3,6 +3,7 @@ import { useForm } from "react-hook-form";
 import TextInput from "../components/TextInput";
 import Loading from "../components/Loading";
 import Button from "../components/Button";
+import { sendRequest } from "../service/service";
 
 const ResetPassword = () => {
   const {
@@ -15,7 +16,28 @@ const ResetPassword = () => {
   const [isSubmit, setIsSubmit] = useState(false);
 
   const onSubmit = async (data) => {
-    //
+    setIsSubmit(true);
+    try {
+      const respone = await sendRequest({
+        url: "user/reset-request",
+        method: "POST",
+        data: data,
+      });
+      console.log(respone);
+
+      if (respone.status === false) {
+        setErrMsg(respone);
+      } else {
+        setErrMsg(respone);
+        setTimeout(() => {
+          window.location.replace("/login");
+        }, 5000);
+      }
+      setIsSubmit(false);
+    } catch (error) {
+      console.log(error);
+      setIsSubmit(false);
+    }
   };
 
   return (
@@ -37,6 +59,10 @@ const ResetPassword = () => {
             type="email"
             register={register("email", {
               required: "Email Address is required",
+              pattern: {
+                value: /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/,
+                message: "Email is wrong format",
+              },
             })}
             styles="w-full rounded"
             labelStyle="ml-2"
@@ -46,9 +72,7 @@ const ResetPassword = () => {
           {errMsg.message && (
             <span
               className={`text-sm ${
-                errMsg.status == "failed"
-                  ? "text-[#f64949fe]"
-                  : "text-[#2ba150fe]"
+                errMsg.status == false ? "text-[#f64949fe]" : "text-[#2ba150fe]"
               } mt-0.5`}
             >
               {errMsg.message}

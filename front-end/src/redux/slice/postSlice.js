@@ -13,9 +13,3 @@ export const postSlice = createSlice({
     },
   },
 });
-
-// export function SetPost(post) {
-//   return (dispatch, getState) => {
-//     dispatch(postSlice.actions.getPosts(post));
-//   };
-// }

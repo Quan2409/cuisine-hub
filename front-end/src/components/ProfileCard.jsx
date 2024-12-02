@@ -17,7 +17,7 @@ const ProfileCard = ({ user }) => {
       <div className="w-full flex items-center justify-between border-b pb-5 border-[#66666645]">
         <Link className="flex gap-2" to={"/profile/" + user._id}>
           <img
-            src={user.profileUrl ?? "/user.png"}
+            src={user.avatar}
             alt={user.email}
             className="w-14 h-14 object-cover rounded-full"
           />
@@ -63,12 +63,12 @@ const ProfileCard = ({ user }) => {
 
       <div className="w-full flex flex-col gap-2 py-4 ">
         <p className="text-xl text-ascent-1 font-semibold">
-          {user.friends.length} Friends
+          {user.friends?.length} Friends
         </p>
 
         <div className="flex items-center justify-between">
           <span className="text-ascent-2">Who viewd your profile</span>
-          <span className="text-ascent-1 text-lg">{user.views.length}</span>
+          <span className="text-ascent-1 text-lg">{user.views?.length}</span>
         </div>
 
         <div className="flex items-center justify-between">

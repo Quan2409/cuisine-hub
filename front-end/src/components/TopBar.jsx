@@ -1,5 +1,4 @@
 import React from "react";
-import { TbSocial } from "react-icons/tb";
 import { BsSunFill, BsMoon } from "react-icons/bs";
 import { useForm } from "react-hook-form";
 import { useDispatch, useSelector } from "react-redux";

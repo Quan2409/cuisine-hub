@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import { BiLike, BiSolidLike, BiComment } from "react-icons/bi";
 import { MdOutlineDeleteOutline } from "react-icons/md";
@@ -32,7 +32,7 @@ const PostCard = ({ post, user, deletePost, likePost }) => {
       <div className="flex gap-3 items-center mb-2">
         <Link to={"/profile/" + post.userId._id}>
           <img
-            src={post.userId.profileUrl ?? "/user.png"}
+            src={post.userId.avatar ?? "/user.png"}
             alt={post.userId.firstName}
             className="w-14 h-14 object-cover rounded-full"
           />
@@ -47,7 +47,7 @@ const PostCard = ({ post, user, deletePost, likePost }) => {
             <span className="text-ascent-2">{post.userId.location}</span>
           </div>
           <span className="text-ascent-2">
-            {moment(post.createdAt ?? "2023-05-25").fromNow()}
+            {post.createdAt ? moment(post.createdAt).fromNow() : "Invalid date"}
           </span>
         </div>
       </div>

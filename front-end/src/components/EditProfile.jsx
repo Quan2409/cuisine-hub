@@ -8,14 +8,15 @@ import Button from "./Button";
 import Loading from "./Loading";
 
 import { userSlice } from "../redux/slice/userSlice";
-const { updateProfile } = userSlice.actions;
+import { handleUpload, sendRequest } from "../service/service";
+const { login, updateProfile } = userSlice.actions;
 
 const EditProfile = () => {
   const { user } = useSelector((state) => state.user);
   const dispatch = useDispatch();
   const [errMsg, setErrMsg] = useState("");
   const [isSubmit, setIsSubmit] = useState(false);
-  const [avatat, setAvatar] = useState(null);
+  const [file, setFile] = useState(null);
 
   const {
     register,
@@ -27,7 +28,42 @@ const EditProfile = () => {
   });
 
   const onSubmit = async (data) => {
-    //
+    setIsSubmit(true);
+    setErrMsg("");
+
+    try {
+      const image = file && (await handleUpload(file));
+
+      const { firstName, lastName, location, profession } = data;
+      const response = await sendRequest({
+        url: "/user/update-user",
+        method: "PUT",
+        data: {
+          firstName,
+          lastName,
+          location,
+          profession,
+          avatar: image ? image : user.avatar,
+        },
+        token: user.token,
+      });
+      console.log(response);
+      if (response.status === false) {
+        setErrMsg(response);
+      } else {
+        setErrMsg(response);
+        const newUser = { token: response.token, ...response.userRecord };
+        localStorage.setItem("user", JSON.stringify(newUser));
+        dispatch(login(newUser));
+        setTimeout(() => {
+          dispatch(updateProfile(false));
+        }, 1500);
+      }
+      setIsSubmit(false);
+    } catch (error) {
+      console.log(error);
+      setIsSubmit(false);
+    }
   };
 
   const handleClose = () => {
@@ -35,7 +71,7 @@ const EditProfile = () => {
   };
 
   const handleSelect = (e) => {
-    setAvatar(e.target.files[0]);
+    setFile(e.target.files[0]);
   };
 
   return (
@@ -100,9 +136,7 @@ const EditProfile = () => {
                 placeholder="Profession"
                 type="text"
                 styles="w-full"
-                register={register("profession", {
-                  required: "Profession is required!",
-                })}
+                register={register("profession")}
                 error={errors.profession ? errors.profession?.message : ""}
               />
 
@@ -112,9 +146,7 @@ const EditProfile = () => {
                 placeholder="Location"
                 type="text"
                 styles="w-full"
-                register={register("location", {
-                  required: "Location do not match",
-                })}
+                register={register("location")}
                 error={errors.location ? errors.location.message : ""}
               />
 
@@ -129,32 +161,32 @@ const EditProfile = () => {
                   accept=".jpg, .png, .jpeg"
                 />
               </label>
-            </form>
 
-            {errMsg.message && (
-              <span
-                role="alert"
-                className={`text-sm ${
-                  errMsg.status === "failed"
-                    ? "text-[#f64949fe]"
-                    : "text-[#2ba150fe]"
-                }`}
-              >
-                {errMsg.message}
-              </span>
-            )}
-
-            <div className="py-5 sm:flex sm:flex-row-reverse border-t border-[#66666645]">
-              {isSubmit ? (
-                <Loading />
-              ) : (
-                <Button
-                  type="submit"
-                  containerStyle={`inline-flex justify-center rounded-md bg-yellow px-8 py-3 text-sm font-medium text-black outline-none mr-5`}
-                  title="Submit"
-                />
+              {errMsg.message && (
+                <span
+                  role="alert"
+                  className={`text-sm ${
+                    errMsg.status === false
+                      ? "text-[#f64949fe]"
+                      : "text-[#2ba150fe]"
+                  }`}
+                >
+                  {errMsg.message}
+                </span>
               )}
-            </div>
+
+              <div className="py-5 sm:flex sm:flex-row-reverse border-t border-[#66666645]">
+                {isSubmit ? (
+                  <Loading />
+                ) : (
+                  <Button
+                    type="submit"
+                    containerStyle={`inline-flex justify-center rounded-md bg-yellow px-8 py-3 text-sm font-medium text-black outline-none mr-5`}
+                    title="Submit"
+                  />
+                )}
+              </div>
+            </form>
           </div>
         </div>
       </div>

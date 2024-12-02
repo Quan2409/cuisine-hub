@@ -3,9 +3,12 @@ import { Link } from "react-router-dom";
 import { TbSocial } from "react-icons/tb";
 import { useForm } from "react-hook-form";
 import { useDispatch } from "react-redux";
+
 import TextInput from "../components/TextInput";
 import Loading from "../components/Loading";
 import Button from "../components/Button";
+
+import { sendRequest } from "../service/service";
 
 const Register = () => {
   const {
@@ -19,7 +22,24 @@ const Register = () => {
   const dispatch = useDispatch();
 
   const onSubmit = async (data) => {
-    //
+    setIsSubmit(true);
+
+    try {
+      const response = await sendRequest({
+        url: "/auth/register",
+        method: "POST",
+        data: data,
+      });
+      if (response.status === false) {
+        setErrMsg(response);
+      } else {
+        setErrMsg(response);
+      }
+      setIsSubmit(false);
+    } catch (error) {
+      console.log(error);
+      setIsSubmit(false);
+    }
   };
 
   return (
@@ -53,6 +73,10 @@ const Register = () => {
                 type="text"
                 register={register("firstName", {
                   required: "First Name is required",
+                  pattern: {
+                    value: /^[a-zA-Z0-9\s]+$/,
+                    message: "First Name must not contain special characters",
+                  },
                 })}
                 styles="w-full rounded"
                 labelStyle="ml-2"
@@ -66,6 +90,10 @@ const Register = () => {
                 type="text"
                 register={register("lastName", {
                   required: "Last Name is required",
+                  pattern: {
+                    value: /^[a-zA-Z0-9\s]+$/,
+                    message: "Last Name must not contain special characters",
+                  },
                 })}
                 styles="w-full rounded"
                 labelStyle="ml-2"
@@ -79,7 +107,11 @@ const Register = () => {
               label="Email Address"
               type="email"
               register={register("email", {
-                required: "Email Address is required",
+                required: "Email is required",
+                pattern: {
+                  value: /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/,
+                  message: "Email is wrong format",
+                },
               })}
               styles="w-full rounded"
               labelStyle="ml-2"
@@ -93,6 +125,14 @@ const Register = () => {
               type="password"
               register={register("password", {
                 required: "Password is required",
+                minLength: {
+                  value: 6,
+                  message: "Password must be at least 6 characters",
+                },
+                pattern: {
+                  value: /^\S+$/,
+                  message: "Password must not contain white spaces",
+                },
               })}
               styles="w-full rounded"
               labelStyle="ml-2"
@@ -100,22 +140,24 @@ const Register = () => {
             />
 
             <TextInput
-              name="password"
+              name="confirm"
               placeholder="Confirm Password"
               label="Confirm Password"
               type="password"
-              register={register("password", {
-                required: "Confirm Password is required",
+              register={register("confirm", {
+                required: "Confirm password is required",
+                validate: (value, { password }) =>
+                  value === password || "Passwords do not match",
               })}
               styles="w-full rounded"
               labelStyle="ml-2"
-              error={errors.password ? errors.password.message : ""}
+              error={errors.confirm ? errors.confirm.message : ""}
             />
 
             {errMsg.message && (
               <span
                 className={`text-sm ${
-                  errMsg.status == "failed"
+                  errMsg.status == false
                     ? "text-[#f64949fe]"
                     : "text-[#2ba150fe]"
                 } mt-0.5`}

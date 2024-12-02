@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useSelector } from "react-redux";
+import { useState, useEffect } from "react";
+import { useSelector, useDispatch } from "react-redux";
 import { Link } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { BiImageAdd } from "react-icons/bi";
@@ -13,24 +13,97 @@ import Loading from "../components/Loading";
 import PostCard from "../components/PostCard";
 import EditProfile from "../components/EditProfile";
 
-import { posts, suggest, requests } from "../assets/data";
+import { suggest, requests } from "../assets/data";
+import { postSlice } from "../redux/slice/postSlice";
+import { handleUpload, sendRequest } from "../service/service";
+
+const { getPosts } = postSlice.actions;
 
 const Home = () => {
   const { user, edit } = useSelector((state) => state.user);
+  const { posts } = useSelector((state) => state.posts);
   const [friendsRequest, setFriendRequest] = useState(requests);
   const [suggestFriends, setSuggestFriend] = useState(suggest);
   const [errMsg, setErrMsg] = useState("");
   const [file, setFile] = useState(null);
   const [isPost, setIsPosting] = useState(false);
   const [isLoadPost, setIsLoadPost] = useState(false);
+  const dispatch = useDispatch();
 
   const {
     register,
     handleSubmit,
+    reset,
     formState: { errors },
   } = useForm();
 
-  const handlePostSubmit = async (data) => {};
+  const getPost = async () => {
+    try {
+      const response = await sendRequest({
+        url: "/post",
+        token: user.token,
+      });
+      setIsLoadPost(false);
+      dispatch(getPosts(response.data));
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  const handlePostSubmit = async (data) => {
+    setIsPosting(true);
+
+    try {
+      const img = file && (await handleUpload(file));
+      const newData = img ? { ...data, image: img } : data;
+      const response = await sendRequest({
+        url: "/post/create-post",
+        token: user.token,
+        method: "POST",
+        data: newData,
+      });
+      console.log(response);
+      if (response.status === false) {
+        setErrMsg(response);
+      } else {
+        reset({
+          content: "",
+        });
+        setFile(null);
+        setErrMsg("");
+        await getPost();
+      }
+      setIsPosting(false);
+    } catch (error) {
+      console.log(error);
+      setIsPosting(false);
+    }
+  };
+
+  const likePost = async () => {
+    //
+  };
+
+  const handleDeletePost = async () => {
+    //
+  };
+
+  const getFriendRequest = async () => {
+    //
+  };
+
+  const getSuggestFriends = async () => {
+    //
+  };
+
+  const handleAcceptFriend = async () => {
+    //
+  };
+
+  useEffect(() => {
+    setIsLoadPost(true);
+    getPost();
+  }, []);
 
   return (
     <>
@@ -51,7 +124,7 @@ const Home = () => {
             >
               <div className="w-full flex items-center gap-2 py-4 border-b border-[#66666645]">
                 <img
-                  src={user.profileUrl ?? "/user.png"}
+                  src={user.avatar ?? "/user.png"}
                   alt={user.firstName}
                   className="w-14 h-14 rounded-full object-cover"
                 />

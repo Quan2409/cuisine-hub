@@ -3,9 +3,15 @@ import { Link } from "react-router-dom";
 import { TbSocial } from "react-icons/tb";
 import { useForm } from "react-hook-form";
 import { useDispatch } from "react-redux";
+
 import TextInput from "../components/TextInput";
 import Loading from "../components/Loading";
 import Button from "../components/Button";
+
+import { userSlice } from "../redux/slice/userSlice";
+import { sendRequest } from "../service/service";
+
+const { login } = userSlice.actions;
 
 const Login = () => {
   const {
@@ -19,7 +25,27 @@ const Login = () => {
   const dispatch = useDispatch();
 
   const onSubmit = async (data) => {
-    //
+    setIsSubmit(true);
+
+    try {
+      const response = await sendRequest({
+        url: "/auth/login",
+        method: "POST",
+        data: data,
+      });
+      if (response.status === false) {
+        setErrMsg(response);
+      } else {
+        setErrMsg("");
+        const newUser = { token: response.token, ...response.user };
+        dispatch(login(newUser));
+        window.location.replace("/");
+      }
+      setIsSubmit(false);
+    } catch (error) {
+      console.log(error);
+      setIsSubmit(false);
+    }
   };
 
   return (
@@ -53,6 +79,10 @@ const Login = () => {
               type="email"
               register={register("email", {
                 required: "Email Address is required",
+                pattern: {
+                  value: /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/,
+                  message: "Email is wrong format",
+                },
               })}
               styles="w-full rounded"
               labelStyle="ml-2"
@@ -82,7 +112,7 @@ const Login = () => {
             {errMsg.message && (
               <span
                 className={`text-sm ${
-                  errMsg.status == "failed"
+                  errMsg.status == false
                     ? "text-[#f64949fe]"
                     : "text-[#2ba150fe]"
                 } mt-0.5`}

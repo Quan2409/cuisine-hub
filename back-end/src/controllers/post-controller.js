@@ -287,7 +287,6 @@ const postController = {
 
   commentPost: async (req, res, next) => {
     const { comment, from } = req.body;
-    const { userId } = req.body.user || {};
     const { id } = req.params;
 
     try {
@@ -296,17 +295,18 @@ const postController = {
         return;
       }
 
+      const postInfo = await postModal.findById(id).populate({
+        path: "userId",
+        select: "firstName lastName avatar location profession -password",
+      });
+
       const newComment = await commentModal.create({
-        userId,
+        userId: postInfo.userId,
         postId: id,
         comment,
         from,
       });
 
-      const postInfo = await postModal.findById(id).populate({
-        path: "userId",
-        select: "firstName lastName avatar location profession -password",
-      });
       postInfo.comments.push(newComment._id);
       await postInfo.save();
 
@@ -314,7 +314,6 @@ const postController = {
         status: true,
         message: "Comment is created in post " + postInfo._id,
         comment: newComment,
-        post: postInfo,
       });
     } catch (error) {
       console.log(error);
@@ -335,7 +334,11 @@ const postController = {
         return;
       }
 
-      const commentRecord = await commentModal.findById(id);
+      const commentRecord = await commentModal.findById(id).populate({
+        path: "userId",
+        select: "firstName lastName avatar",
+      });
+
       commentRecord.replies.push({
         comment,
         replyAt,
@@ -343,6 +346,7 @@ const postController = {
         userId,
         createdAt: Date.now(),
       });
+
       const updateComment = await commentRecord.save();
       if (updateComment) {
         return res.status(200).json({

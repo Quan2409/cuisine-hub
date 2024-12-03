@@ -18,15 +18,13 @@ const PostCard = ({ post, user, deletePost, likePost }) => {
   const [replyComments, setReplyComment] = useState(0);
   const [isLoad, setIsLoad] = useState(false);
 
-  console.log(comment);
-
   const getPostComment = async (id) => {
     try {
       const response = await sendRequest({
         url: `/post/get-comment/${id}`,
       });
       setReplyComment(0);
-      setComments(response.data);
+      setComments(response.data || []);
       setIsLoad(false);
     } catch (error) {
       console.log(error);
@@ -202,7 +200,9 @@ const PostCard = ({ post, user, deletePost, likePost }) => {
                       user={user}
                       id={comment._id}
                       replyAt={comment.from}
+                      comment={comment}
                       setComments={setComments}
+                      setReplyComment={setReplyComment}
                     />
                   )}
                 </div>
@@ -213,17 +213,17 @@ const PostCard = ({ post, user, deletePost, likePost }) => {
                       className="text-base text-ascent-1 cursor-pointer"
                       onClick={() =>
                         setShowReply(
-                          showReply === comment.replies._id
-                            ? 0
-                            : comment.replies._id
+                          showReply === comment._id ? 0 : comment._id
                         )
                       }
                     >
-                      Show Replies ({comment.replies.length})
+                      {showReply === comment._id
+                        ? `Hide Replies`
+                        : `Show Replies (${comment.replies.length})`}
                     </div>
                   )}
 
-                  {showReply === comment.replies._id &&
+                  {showReply === comment._id &&
                     comment.replies.map((reply) => (
                       <ReplyCard
                         key={reply._id}

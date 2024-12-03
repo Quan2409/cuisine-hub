@@ -7,10 +7,16 @@ import Button from "./Button";
 
 import { sendRequest } from "../service/service";
 
-const CommentForm = ({ user, id, replyAt, setComments }) => {
-  console.log(setComments);
-
+const CommentForm = ({
+  user,
+  id,
+  replyAt,
+  comment,
+  setReplyComment,
+  setComments,
+}) => {
   const [loading, setLoading] = useState(false);
+  const [triggerRender, setTriggerRender] = useState(false);
   const [errMsg, setErrMsg] = useState("");
 
   const {
@@ -52,16 +58,20 @@ const CommentForm = ({ user, id, replyAt, setComments }) => {
         });
         setErrMsg("");
         if (replyAt) {
-          setComments((prevComments) =>
-            prevComments.map((cmt) =>
-              cmt._id === data.comment._id
+          setComments((prevComments) => {
+            const updateComment = prevComments.map((cmt) =>
+              cmt._id === comment._id
                 ? {
                     ...cmt,
-                    replies: [...cmt.replies, response.data.reply],
+                    replies: response.data.replies,
+                    userId: response.data.userId,
                   }
                 : cmt
-            )
-          );
+            );
+            console.log(updateComment);
+            setReplyComment(0);
+            return updateComment;
+          });
         } else {
           setComments((prevComments) => [...prevComments, response.comment]);
         }
@@ -69,6 +79,7 @@ const CommentForm = ({ user, id, replyAt, setComments }) => {
       setLoading(false);
     } catch (error) {
       console.log(error);
+      setLoading(false);
     }
   };
 

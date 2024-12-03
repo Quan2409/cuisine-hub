@@ -15,7 +15,7 @@ router.get("/reset-status", userController.viewStatus);
 router.post("/change-password", userController.changePassword);
 
 // user-profile
-router.get("/get-user/:id", authMiddleware, userController.getUser);
+router.get("/get-user/:id?", authMiddleware, userController.getUser);
 router.put("/update-user", authMiddleware, userController.updateUser);
 
 // send friend request
@@ -39,6 +39,6 @@ router.post("/accept-request", authMiddleware, userController.acceptRequest);
 router.post("/profile-viewer", authMiddleware, userController.viewProfile);
 
 // suggest friend
-router.post("/suggested-friends", authMiddleware, userController.suggestFriend);
+router.get("/suggested-friends", authMiddleware, userController.suggestFriend);
 
 module.exports = router;

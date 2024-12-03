@@ -260,7 +260,7 @@ const userController = {
         })
         .populate({
           path: "request_from",
-          select: "firstName lastName avatar profession -password ",
+          select: "firstName lastName avatar location profession -password ",
         })
         .limit(10)
         .sort({

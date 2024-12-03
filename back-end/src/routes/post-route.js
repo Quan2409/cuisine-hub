@@ -23,7 +23,7 @@ router.post("/like/:id", authMiddleware, postController.likePosts);
 router.post("/comment/:id", authMiddleware, postController.commentPost);
 
 // reply comment
-router.post("/reply-comment/:id", authMiddleware, postController.replyComemnt);
+router.post("/reply-comment/:id", authMiddleware, postController.replyComment);
 
 // like comment and reply
 router.post(

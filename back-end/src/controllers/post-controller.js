@@ -147,18 +147,25 @@ const postController = {
         .find({ postId })
         .populate({
           path: "userId",
-          select: "firstName lastName location avatar -password",
+          select: "firstName lastName location profession avatar -password",
         })
         .populate({
           path: "replies.userId",
-          select: "firstName lastName lcoation avatar -password",
+          select: "firstName lastName location profession avatar -password",
         })
         .sort({ _id: 1 });
+
+      if (!hasComment || hasComment.length === 0) {
+        return res.status(200).json({
+          status: false,
+          message: "No comments found for post " + postId,
+        });
+      }
 
       if (hasComment) {
         return res.status(200).json({
           status: true,
-          message: "This is comments of post" + postId,
+          message: "This is comments of post " + postId,
           data: hasComment,
         });
       }
@@ -206,9 +213,11 @@ const postController = {
   likeComment: async (req, res) => {
     const { userId } = req.body.user;
     const { id, replyId } = req.params;
+    console.log(id);
+    console.log(replyId);
 
     try {
-      if (replyId === undefined || replyId === null || replyId === "fasle") {
+      if (replyId === undefined || replyId === null || replyId === false) {
         const commentRecord = await commentModal.findById(id);
         const index = commentRecord.likes.findIndex(
           (i) => i === String(userId)
@@ -216,7 +225,7 @@ const postController = {
         if (index === -1) {
           commentRecord.likes.push(userId);
         } else {
-          commentRecord.likes = comment.likes.filter(
+          commentRecord.likes = commentRecord.likes.filter(
             (i) => i !== String(userId)
           );
         }
@@ -225,13 +234,12 @@ const postController = {
           id,
           commentRecord
         );
-        if (updateComment) {
-          return res.status(201).json({
-            status: true,
-            message: "Comment is liked",
-            data: updateComment,
-          });
-        }
+
+        return res.status(201).json({
+          status: true,
+          message: "Comment is liked",
+          data: updateComment,
+        });
       } else {
         const findReplyCommement = await commentModal.findOne(
           { _id: id },
@@ -257,15 +265,16 @@ const postController = {
         }
 
         const query = { _id: id, "replies._id": replyId };
-        const updateRepplyComment = {
+        const updateReplyComment = {
           $set: {
             "replies.$.likes": findReplyCommement.replies[0].likes,
           },
         };
-        await commentModal.updateOne(query, updateRepplyComment);
+        await commentModal.updateOne(query, updateReplyComment);
         return res.status(201).json({
           status: true,
           message: "An reply is liked in comment" + id,
+          data: updateReplyComment,
         });
       }
     } catch (error) {
@@ -278,7 +287,7 @@ const postController = {
 
   commentPost: async (req, res, next) => {
     const { comment, from } = req.body;
-    const { userId } = req.body.user;
+    const { userId } = req.body.user || {};
     const { id } = req.params;
 
     try {
@@ -288,25 +297,25 @@ const postController = {
       }
 
       const newComment = await commentModal.create({
-        comment,
-        from,
         userId,
         postId: id,
+        comment,
+        from,
       });
-      await newComment.save();
 
-      //update comment in postModal
-      const postRecord = await postModal.findById(id);
-      postRecord.comments.push(newComment._id);
-      const updatePost = await postModal.findByIdAndUpdate(id, postRecord);
-      if (updatePost) {
-        return res.status(201).json({
-          status: true,
-          message: "Comment is created in post" + postRecord._id,
-          comment: newComment,
-          newpost: updatePost,
-        });
-      }
+      const postInfo = await postModal.findById(id).populate({
+        path: "userId",
+        select: "firstName lastName avatar location profession -password",
+      });
+      postInfo.comments.push(newComment._id);
+      await postInfo.save();
+
+      return res.status(201).json({
+        status: true,
+        message: "Comment is created in post " + postInfo._id,
+        comment: newComment,
+        post: postInfo,
+      });
     } catch (error) {
       console.log(error);
       return res.status(404).json({
@@ -315,7 +324,7 @@ const postController = {
     }
   },
 
-  replyComemnt: async (req, res, next) => {
+  replyComment: async (req, res, next) => {
     const { userId } = req.body.user;
     const { comment, replyAt, from } = req.body;
     const { id } = req.params;

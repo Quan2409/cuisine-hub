@@ -28,33 +28,9 @@ const sendRequest = async ({ url, token, data, method = "GET" }) => {
   }
 };
 
-const likePost = async (id, token) => {
-  try {
-    const response = await sendRequest(`/post/like/${id}`, {
-      method: "POST",
-      token: token,
-    });
-    return response;
-  } catch (error) {
-    console.log(error);
-  }
-};
-
-const deletePost = async (id, token) => {
-  try {
-    const response = await sendRequest(`/post/${id}`, {
-      method: "DELETE",
-      token: token,
-    });
-    return response;
-  } catch (error) {
-    console.log(error);
-  }
-};
-
 const getUser = async (id, token) => {
   try {
-    const response = await sendRequest(`/user/get-user/${id}`, {
+    const response = await sendRequest(`/user/get-user`, {
       method: "GET",
       token: token,
     });
@@ -65,19 +41,6 @@ const getUser = async (id, token) => {
     } else {
       return response.user;
     }
-  } catch (error) {
-    console.log(error);
-  }
-};
-
-const sendFriendRequest = async (id, token) => {
-  try {
-    const response = await sendRequest("/user/friend-request", {
-      method: "POST",
-      token: token,
-      body: { request_receiver: id },
-    });
-    return response;
   } catch (error) {
     console.log(error);
   }

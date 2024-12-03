@@ -1,13 +1,18 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 
 import TextInput from "./TextInput";
 import Loading from "./Loading";
 import Button from "./Button";
 
-const CommentForm = ({ user, id, replyAt, getComments }) => {
+import { sendRequest } from "../service/service";
+
+const CommentForm = ({ user, id, replyAt, setComments }) => {
+  console.log(setComments);
+
   const [loading, setLoading] = useState(false);
   const [errMsg, setErrMsg] = useState("");
+
   const {
     register,
     handleSubmit,
@@ -17,8 +22,54 @@ const CommentForm = ({ user, id, replyAt, getComments }) => {
     mode: "onChange",
   });
 
-  const onSubmit = async () => {
-    //
+  const onSubmit = async (data) => {
+    setLoading(true);
+    setErrMsg("");
+
+    try {
+      const url = replyAt ? `/post/reply-comment/${id}` : `/post/comment/${id}`;
+
+      const newData = {
+        comment: data.comment,
+        from: user.firstName + " " + user.lastName,
+        replyAt: replyAt,
+      };
+
+      const response = await sendRequest({
+        url: url,
+        data: newData,
+        token: user.token,
+        method: "POST",
+      });
+
+      console.log(response);
+
+      if (response.status === false) {
+        setErrMsg(response);
+      } else {
+        reset({
+          comment: "",
+        });
+        setErrMsg("");
+        if (replyAt) {
+          setComments((prevComments) =>
+            prevComments.map((cmt) =>
+              cmt._id === data.comment._id
+                ? {
+                    ...cmt,
+                    replies: [...cmt.replies, response.data.reply],
+                  }
+                : cmt
+            )
+          );
+        } else {
+          setComments((prevComments) => [...prevComments, response.comment]);
+        }
+      }
+      setLoading(false);
+    } catch (error) {
+      console.log(error);
+    }
   };
 
   return (
@@ -29,7 +80,7 @@ const CommentForm = ({ user, id, replyAt, getComments }) => {
       >
         <div className="w-full flex items-center gap-2 py-4">
           <img
-            src={user.profileUrl ?? "/user.png"}
+            src={user.avatar ?? "/user.png"}
             alt={user.firstName}
             className="w-14 h-14 rounded-full object-cover"
           />
@@ -39,7 +90,7 @@ const CommentForm = ({ user, id, replyAt, getComments }) => {
             styles="w-full rounded-full py-3"
             placeholder={replyAt ? `Reply ${replyAt}` : "Comment this post"}
             register={register("comment", {
-              required: "Commoent cannot be empty",
+              required: "Comment cannot be empty",
             })}
             error={errors.comment ? errors.comment.message : ""}
           />
@@ -48,9 +99,7 @@ const CommentForm = ({ user, id, replyAt, getComments }) => {
           <span
             role="alert"
             className={`text-sm ${
-              errMsg.status === "failed"
-                ? "text-[#f64949fe]"
-                : "text-[#2ba150fe]"
+              errMsg.status === false ? "text-[#f64949fe]" : "text-[#2ba150fe]"
             } mt-0.5`}
           ></span>
         )}

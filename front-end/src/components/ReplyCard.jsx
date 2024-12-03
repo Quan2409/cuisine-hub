@@ -1,15 +1,48 @@
-import moment from "moment";
-import React from "react";
 import { Link } from "react-router-dom";
-import { BiLike, BiSolidLike, BiComment } from "react-icons/bi";
+import { BiLike, BiSolidLike } from "react-icons/bi";
+import moment from "moment";
 
-const ReplyCard = ({ user, reply, handleLike }) => {
+import { sendRequest } from "../service/service";
+
+const ReplyCard = ({ comment, setComments, user, reply }) => {
+  const likeReply = async (id) => {
+    try {
+      const response = await sendRequest({
+        url: `post/like-comment/${comment._id}/${id}`,
+        method: "POST",
+        token: user.token,
+      });
+
+      console.log(response);
+
+      setComments((prevComments) =>
+        prevComments.map((cmt) =>
+          cmt._id === comment._id
+            ? {
+                ...cmt,
+                replies: cmt.replies.map((r) =>
+                  r._id === id
+                    ? {
+                        ...r,
+                        likes: response.data.$set["replies.$.likes"],
+                      }
+                    : r
+                ),
+              }
+            : cmt
+        )
+      );
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
   return (
     <div className="w-full py-3 ">
       <div className="flex gap-3 items-center mb-1">
         <Link to={"/porfile/" + reply.userId._id}>
           <img
-            src={reply.userId.profileUrl ?? "/user.png"}
+            src={reply.userId.avatar ?? "/user.png"}
             alt={reply.userId.firstName}
             className="w-14 h-14 rounded-full object-cover"
           />
@@ -27,12 +60,12 @@ const ReplyCard = ({ user, reply, handleLike }) => {
         </div>
       </div>
 
-      <div className="ml-12">
-        <p className="text-ascent-2">{reply.comments}</p>
+      <div className="ml-16">
+        <p className="text-ascent-2">{reply.comment}</p>
         <div className="mt-2 flex gap-6">
           <div
             className="flex gap-2 items-center text-base text-ascent-2 cursor-pointer"
-            onClick={handleLike}
+            onClick={() => likeReply(reply._id)}
           >
             {reply.likes.includes(user._id) ? (
               <BiSolidLike size={20} color="yellow" />

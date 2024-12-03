@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useSelector } from "react-redux";
 import { Link } from "react-router-dom";
 import { BiLike, BiSolidLike, BiComment } from "react-icons/bi";
 import { MdOutlineDeleteOutline } from "react-icons/md";
@@ -7,24 +8,51 @@ import moment from "moment";
 import CommentForm from "./CommentForm";
 import ReplyCard from "./ReplyCard";
 
-import { postComments } from "../assets/data";
+import { sendRequest } from "../service/service";
 
 const PostCard = ({ post, user, deletePost, likePost }) => {
   const [showAll, setShowAll] = useState(0);
   const [showReply, setShowReply] = useState(0);
-  const [comment, setComments] = useState([]);
-  const [isLoad, setIsLoad] = useState(false);
-  const [replyComments, setReplyComment] = useState(0);
   const [showComments, setShowComments] = useState(0);
+  const [comment, setComments] = useState([]);
+  const [replyComments, setReplyComment] = useState(0);
+  const [isLoad, setIsLoad] = useState(false);
 
-  const getComments = async () => {
-    setReplyComment(0);
-    setComments(postComments);
-    setIsLoad(false);
+  console.log(comment);
+
+  const getPostComment = async (id) => {
+    try {
+      const response = await sendRequest({
+        url: `/post/get-comment/${id}`,
+      });
+      setReplyComment(0);
+      setComments(response.data);
+      setIsLoad(false);
+    } catch (error) {
+      console.log(error);
+    }
   };
 
-  const handleLike = async () => {
-    //
+  const likeComment = async (id) => {
+    try {
+      const response = await sendRequest({
+        url: `post/like-comment/${id}`,
+        method: "POST",
+        token: user.token,
+      });
+      setComments((prevComments) =>
+        prevComments.map((cmt) =>
+          cmt._id === id
+            ? {
+                ...cmt,
+                likes: response.data.likes,
+              }
+            : cmt
+        )
+      );
+    } catch (error) {
+      console.log(error);
+    }
   };
 
   return (
@@ -37,6 +65,7 @@ const PostCard = ({ post, user, deletePost, likePost }) => {
             className="w-14 h-14 object-cover rounded-full"
           />
         </Link>
+
         <div className="w-full flex justify-between">
           <div className="">
             <Link to={"/profile/" + post.userId._id}>
@@ -83,7 +112,10 @@ const PostCard = ({ post, user, deletePost, likePost }) => {
       </div>
 
       <div className="mt-4 flex justify-between items-center px-3 py-2 text-ascent-2 text-base border-t border-[#66666645]">
-        <div className="flex gap-2 items-center text-base cursor-pointer">
+        <div
+          className="flex gap-2 items-center text-base cursor-pointer"
+          onClick={() => likePost(post._id)}
+        >
           {post.likes.includes(user._id) ? (
             <BiSolidLike size={20} color="yellow" />
           ) : (
@@ -96,7 +128,7 @@ const PostCard = ({ post, user, deletePost, likePost }) => {
           className="flex gap-2 items-center text-base cursor-pointer"
           onClick={() => {
             setShowComments(showComments === post._id ? null : post._id);
-            getComments(post._id);
+            getPostComment(post._id);
           }}
         >
           <BiComment size={20} />
@@ -116,27 +148,23 @@ const PostCard = ({ post, user, deletePost, likePost }) => {
 
       {showComments === post._id && (
         <div className="w-full mt-4 border-t border-[#66666645] pt-4">
-          <CommentForm
-            user={user}
-            id={post._id}
-            getComments={() => getComments(post._id)}
-          />
+          <CommentForm user={user} id={post._id} setComments={setComments} />
 
           {isLoad ? (
             <Loading />
           ) : comment.length > 0 ? (
-            postComments.map((comment) => (
-              <div key={comment._id} className="w-full py-2">
+            comment.map((comment) => (
+              <div key={comment._id} className="w-full py-4">
                 <div className="flex gap-3 items-center mb-1">
-                  <Link to={"/profile/" + comment.userId._id}>
+                  <Link to={"/profile/" + comment.userId}>
                     <img
-                      src={comment.userId.profileUrl ?? "/user.png"}
-                      alt={comment.userId.firstName}
+                      src={comment.userId?.avatar ?? "/user.png"}
+                      alt={comment.userId?.firstName}
                       className="w-14 h-14 rounded-full object-cover"
                     />
                   </Link>
                   <div>
-                    <Link to={"/profile/" + comment.userId._id}>
+                    <Link to={"/profile/" + comment.userId}>
                       <p className="fotn-medium text-base text-ascent-1">
                         {comment.userId.firstName} {comment.userId.lastName}
                       </p>
@@ -147,10 +175,13 @@ const PostCard = ({ post, user, deletePost, likePost }) => {
                   </div>
                 </div>
 
-                <div className="ml-14">
+                <div className="ml-16">
                   <p className="text-ascent-2">{comment.comment}</p>
                   <div className="mt-2 flex gap-6">
-                    <div className="flex gap-2 items-center text-base text-ascent-2 cursor pointer">
+                    <div
+                      className="flex gap-2 items-center text-base text-ascent-2 cursor pointer"
+                      onClick={() => likeComment(comment._id)}
+                    >
                       {comment.likes.includes(user._id) ? (
                         <BiSolidLike size={20} color="yellow" />
                       ) : (
@@ -170,13 +201,13 @@ const PostCard = ({ post, user, deletePost, likePost }) => {
                     <CommentForm
                       user={user}
                       id={comment._id}
-                      replyAt={comment.form}
-                      getComments={() => getComments(post._id)}
+                      replyAt={comment.from}
+                      setComments={setComments}
                     />
                   )}
                 </div>
 
-                <div className="py-2 px-8 mt-6">
+                <div className="py-2 px-8 mt-3 ml-5">
                   {comment.replies.length > 0 && (
                     <div
                       className="text-base text-ascent-1 cursor-pointer"
@@ -195,17 +226,11 @@ const PostCard = ({ post, user, deletePost, likePost }) => {
                   {showReply === comment.replies._id &&
                     comment.replies.map((reply) => (
                       <ReplyCard
+                        key={reply._id}
                         reply={reply}
                         user={user}
-                        key={reply._id}
-                        handleLike={() =>
-                          handleLike(
-                            "/posts/like-comment/" +
-                              comment._id +
-                              "/" +
-                              reply._id
-                          )
-                        }
+                        comment={comment}
+                        setComments={setComments}
                       />
                     ))}
                 </div>

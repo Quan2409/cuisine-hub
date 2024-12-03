@@ -21,14 +21,11 @@ const ProfileCard = ({ user }) => {
             alt={user.email}
             className="w-14 h-14 object-cover rounded-full"
           />
-
           <div className="flex flex-col justify-center">
             <p className="text-lg font-medium text-ascent-1">
               {user.firstName} {user.lastName}
             </p>
-            <span className="text-ascent-2">
-              {user.profession ?? "No Professtion"}
-            </span>
+            <span className="text-ascent-2">{user.profession}</span>
           </div>
         </Link>
 
@@ -74,7 +71,7 @@ const ProfileCard = ({ user }) => {
         <div className="flex items-center justify-between">
           <span className="text-ascent-2">Joined</span>
           <span className="text-ascent-2">
-            {moment(user.createdAt).fromNow()}
+            {user.createdAt ? moment(user.createdAt).fromNow() : "Invalid Date"}
           </span>
         </div>
       </div>

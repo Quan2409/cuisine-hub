@@ -17,7 +17,7 @@ const FriendCard = ({ friends }) => {
             className="w-full flex gap-4 items-center cursor-pointer"
           >
             <img
-              src={friend.profileUrl ?? "/user.png"}
+              src={friend.avatar ?? "/user.png"}
               alt={friend.firstName}
               className="w-14 h-14 object-cover rounded-full"
             />

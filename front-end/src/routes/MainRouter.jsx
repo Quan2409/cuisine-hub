@@ -13,7 +13,7 @@ const MainRouter = () => {
       <Routes>
         <Route element={<ProtecRouter />}>
           <Route path="/" element={<Home />}></Route>
-          <Route path="/profile/:id" element={<Profile />}></Route>
+          <Route path="/profile/:id?" element={<Profile />}></Route>
         </Route>
 
         <Route path="/register" element={<Register />}></Route>

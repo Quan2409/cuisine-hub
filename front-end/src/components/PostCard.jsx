@@ -23,6 +23,8 @@ const PostCard = ({ post, user, deletePost, likePost }) => {
       const response = await sendRequest({
         url: `/post/get-comment/${id}`,
       });
+      console.log(response);
+
       setReplyComment(0);
       setComments(response.data || []);
       setIsLoad(false);
@@ -189,7 +191,11 @@ const PostCard = ({ post, user, deletePost, likePost }) => {
                     </div>
                     <span
                       className="text-yellow cursor-pointer"
-                      onClick={() => setReplyComment(comment._id)}
+                      onClick={() =>
+                        setReplyComment((prev) =>
+                          prev === comment._id ? 0 : comment._id
+                        )
+                      }
                     >
                       Reply
                     </span>
@@ -207,7 +213,7 @@ const PostCard = ({ post, user, deletePost, likePost }) => {
                   )}
                 </div>
 
-                <div className="py-2 px-8 mt-3 ml-5">
+                <div className="py-2 px-8 mt-3 ml-8">
                   {comment.replies.length > 0 && (
                     <div
                       className="text-base text-ascent-1 cursor-pointer"

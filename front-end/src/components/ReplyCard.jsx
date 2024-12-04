@@ -14,9 +14,6 @@ const ReplyCard = ({ comment, setComments, user, reply }) => {
         method: "POST",
         token: user.token,
       });
-
-      console.log(response);
-
       setComments((prevComments) =>
         prevComments.map((cmt) =>
           cmt._id === comment._id

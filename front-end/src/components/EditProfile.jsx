@@ -9,6 +9,7 @@ import Loading from "./Loading";
 
 import { userSlice } from "../redux/slice/userSlice";
 import { handleUpload, sendRequest } from "../service/service";
+
 const { login, updateProfile } = userSlice.actions;
 
 const EditProfile = () => {
@@ -47,7 +48,6 @@ const EditProfile = () => {
         },
         token: user.token,
       });
-      console.log(response);
       if (response.status === false) {
         setErrMsg(response);
       } else {

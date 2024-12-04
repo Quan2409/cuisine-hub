@@ -28,24 +28,6 @@ const sendRequest = async ({ url, token, data, method = "GET" }) => {
   }
 };
 
-const getUser = async (id, token) => {
-  try {
-    const response = await sendRequest(`/user/get-user`, {
-      method: "GET",
-      token: token,
-    });
-    if (response.message === "Authentication failed") {
-      localStorage.removeItem("user");
-      window.alert("user session has expried. login again");
-      window.location.replace("/login");
-    } else {
-      return response.user;
-    }
-  } catch (error) {
-    console.log(error);
-  }
-};
-
 const viewProfile = async (id, token) => {
   try {
     const response = await sendRequest("/user/view-profile", {

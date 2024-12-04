@@ -16,8 +16,10 @@ const CommentForm = ({
   setComments,
 }) => {
   const [loading, setLoading] = useState(false);
-  const [triggerRender, setTriggerRender] = useState(false);
   const [errMsg, setErrMsg] = useState("");
+
+  // console.log(user);
+  // return right
 
   const {
     register,

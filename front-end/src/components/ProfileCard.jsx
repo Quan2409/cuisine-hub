@@ -1,21 +1,24 @@
+import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { Link } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import { LiaEdit } from "react-icons/lia";
 import { CiLocationOn } from "react-icons/ci";
 import { BsPersonFillAdd, BsBriefcase } from "react-icons/bs";
 import moment from "moment";
 
 import { userSlice } from "../redux/slice/userSlice";
+
 const { updateProfile } = userSlice.actions;
 
 const ProfileCard = ({ user }) => {
   const { user: data } = useSelector((state) => state.user);
+  const [loading, setLoading] = useState(false);
   const dispatch = useDispatch();
 
   return (
     <div className="w-full bg-primaryColor flex flex-col items-center shadow-sm rounded-xl px-6 py-4">
       <div className="w-full flex items-center justify-between border-b pb-5 border-[#66666645]">
-        <Link className="flex gap-2" to={"/profile/" + user._id}>
+        <Link className="flex gap-2" to={`/profile/${user._id}`}>
           <img
             src={user.avatar}
             alt={user.email}
@@ -37,12 +40,13 @@ const ProfileCard = ({ user }) => {
               onClick={() => dispatch(updateProfile(true))}
             />
           ) : (
-            <button
-              className="bg-[#0444a430] text-sm text-white p-2 rounded"
-              onClick={() => dispatch(updateProfile(false))}
-            >
-              <BsPersonFillAdd size={22} className="text-yellow" />
-            </button>
+            // <button
+            //   className="bg-[#0444a430] text-sm text-white p-2 rounded"
+            //   onClick={() => dispatch(updateProfile(false))}
+            // >
+            //   <BsPersonFillAdd size={22} className="text-yellow" />
+            // </button>
+            ""
           )}
         </div>
       </div>

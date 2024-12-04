@@ -28,7 +28,6 @@ const Home = () => {
   const [file, setFile] = useState(null);
   const [isPost, setIsPosting] = useState(false);
   const [isLoadPost, setIsLoadPost] = useState(false);
-
   const { user, edit } = useSelector((state) => state.user);
   const { posts } = useSelector((state) => state.posts);
 
@@ -162,7 +161,22 @@ const Home = () => {
         method: "POST",
         data: { request_id: id, request_status: status },
       });
-      setFriendRequest(response.data);
+      console.log(response);
+
+      setFriendRequest((prevState) => {
+        if (status === "Accepted") {
+          // Cập nhật trạng thái yêu cầu thành Accepted
+          return prevState.map((request) =>
+            request.id === id ? { ...request, status: "Accepted" } : request
+          );
+        } else if (status === "Denied") {
+          // Loại bỏ yêu cầu khỏi danh sách nếu bị Denied
+          return prevState.map((request) =>
+            request.id !== id ? { ...request, status: "Denied" } : request
+          );
+        }
+        return prevState;
+      });
     } catch (error) {
       console.log(error);
     }
@@ -174,16 +188,9 @@ const Home = () => {
         url: "/user/get-user",
         token: user.token,
       });
-
-      if (response.message === "Authentication failed") {
-        localStorage.removeItem("user");
-        window.alert("user session has expried. login again");
-        window.location.replace("/login");
-      } else {
-        return response.user;
-      }
-      const newData = { token: user.token, ...response };
+      const newData = { token: user.token, ...response.user };
       dispatch(login(newData));
+      return response.user;
     } catch (error) {
       console.log(error);
     }
@@ -250,6 +257,7 @@ const Home = () => {
                     type="file"
                     onChange={(e) => {
                       const file = e.target.files[0];
+                      console.log(file);
                       if (file) {
                         setFile(file);
                         setFilenName(file.name);
@@ -258,15 +266,24 @@ const Home = () => {
                     className="hidden"
                     id="img-upload"
                     data-max-size="5120"
-                    accept=".jpg, .png, ,jpeg"
+                    accept=".jpg, .png, .jpeg"
                   />
                   <BiImageAdd />
                   <span>Image</span>
-                  {fileName && (
-                    <span className="ml-2 text-sm text-gray-500">
-                      ({fileName})
-                    </span>
-                  )}
+
+                  <div>
+                    {fileName && (
+                      // <span className="ml-2 text-sm text-gray-500">
+                      //   ({fileName})
+                      // </span>
+                      <img
+                        src={URL.createObjectURL(file)}
+                        width={50}
+                        height={20}
+                        alt={fileName}
+                      />
+                    )}
+                  </div>
                 </label>
 
                 {isPost ? (

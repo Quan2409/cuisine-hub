@@ -18,9 +18,6 @@ const CommentForm = ({
   const [loading, setLoading] = useState(false);
   const [errMsg, setErrMsg] = useState("");
 
-  // console.log(user);
-  // return right
-
   const {
     register,
     handleSubmit,
@@ -49,8 +46,6 @@ const CommentForm = ({
         token: user.token,
         method: "POST",
       });
-
-      console.log(response);
 
       if (response.status === false) {
         setErrMsg(response);

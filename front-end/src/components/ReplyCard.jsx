@@ -50,7 +50,7 @@ const ReplyCard = ({ comment, setComments, user, reply }) => {
         <div>
           <Link to={"/porfile/" + comment.userId._id}>
             <p className="font-medium text-base text-ascent-1">
-              {comment.userId.firstName} {comment.userId.lastName}
+              {comment.from}
             </p>
           </Link>
           <span className="text-ascent-2 text-sm">

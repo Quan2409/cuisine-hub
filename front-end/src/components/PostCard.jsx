@@ -23,8 +23,6 @@ const PostCard = ({ post, user, deletePost, likePost }) => {
       const response = await sendRequest({
         url: `/post/get-comment/${id}`,
       });
-      console.log(response);
-
       setReplyComment(0);
       setComments(response.data || []);
       setIsLoad(false);

@@ -146,8 +146,12 @@ const userController = {
   // handle get all user profile
   getUser: async (req, res) => {
     try {
-      const { id } = req.params;
       const { userId } = req.body.user;
+      const { id } = req.params;
+
+      console.log("Params: ", id);
+      console.log("No Params: ", userId);
+
       const userRecord = await userModal.findById(id ?? userId).populate({
         path: "friends",
         select: "-password",
@@ -158,17 +162,17 @@ const userController = {
           status: false,
           message: "User not found",
         });
-      } else {
-        return res.status(200).json({
-          status: true,
-          user: userRecord,
-        });
       }
+
+      return res.status(200).json({
+        status: true,
+        user: userRecord,
+      });
     } catch (error) {
       console.log(error);
       return res.status(500).json({
         status: false,
-        messsage: error.message,
+        message: error.message,
       });
     }
   },
@@ -293,10 +297,13 @@ const userController = {
         next("No friend request found");
         return;
       } else {
-        const newRequest = await friendModal.findByIdAndUpdate({
-          _id: request_id,
-          request_status: request_status,
-        });
+        const newRequest = await friendModal.findByIdAndUpdate(
+          {
+            _id: request_id,
+            request_status: request_status,
+          },
+          { new: true }
+        );
 
         if (request_status === "Accepted") {
           const userRecord = await userModal.findById(userId);
@@ -310,6 +317,8 @@ const userController = {
 
           friendRecord.friends.push(newRequest.request_receiver);
           await friendRecord.save();
+          await friendModal.findByIdAndDelete(request_id);
+        } else if (request_status === "Denied") {
           await friendModal.findByIdAndDelete(request_id);
         }
 
@@ -360,17 +369,18 @@ const userController = {
       queryObject._id = { $ne: userId };
       queryObject.friends = { $nin: userId };
 
-      let queryResults = await userModal
+      let queryResults = userModal
         .find(queryObject)
         .limit(15)
         .select("firstName lastName avatar location profession -password");
 
-      if (queryResults) {
-        return res.status(200).json({
-          status: true,
-          friends: queryResults,
-        });
-      }
+      const suggestedFriends = await queryResults;
+      console.log(suggestedFriends);
+
+      return res.status(200).json({
+        status: true,
+        friends: suggestedFriends,
+      });
     } catch (error) {
       console.log(error);
       return res.status(404).json({

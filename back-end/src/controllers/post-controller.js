@@ -287,6 +287,7 @@ const postController = {
 
   commentPost: async (req, res, next) => {
     const { comment, from } = req.body;
+    const { userId } = req.body.user;
     const { id } = req.params;
 
     try {
@@ -295,13 +296,14 @@ const postController = {
         return;
       }
 
+      const userInfo = await userModal.findById(userId);
       const postInfo = await postModal.findById(id).populate({
         path: "userId",
         select: "firstName lastName avatar location profession -password",
       });
 
       const newComment = await commentModal.create({
-        userId: postInfo.userId,
+        userId: userInfo,
         postId: id,
         comment,
         from,
@@ -334,6 +336,7 @@ const postController = {
         return;
       }
 
+      const userInfo = await userModal.findById(userId);
       const commentRecord = await commentModal.findById(id).populate({
         path: "userId",
         select: "firstName lastName avatar",
@@ -343,7 +346,7 @@ const postController = {
         comment,
         replyAt,
         from,
-        userId,
+        userId: userInfo,
         createdAt: Date.now(),
       });
 

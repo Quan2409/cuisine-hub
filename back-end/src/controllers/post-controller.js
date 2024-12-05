@@ -32,20 +32,61 @@ const postController = {
     }
   },
 
+  getAllPosts: async (req, res) => {
+    try {
+      const posts = await postModal
+        .find({})
+        .populate({
+          path: "userId",
+          select: "firstName lastName location profession avatar -password",
+        })
+        .sort({ _id: -1 });
+
+      return res.status(200).json({
+        status: true,
+        message: "All posts response",
+        data: posts,
+      });
+    } catch (error) {
+      console.log(error);
+      return res.status(404).json({
+        message: error.message,
+      });
+    }
+  },
+
   searchPost: async (req, res) => {
     const { userId } = req.body.user;
     const { search } = req.body;
 
     try {
       const isUserExits = await userModal.findById(userId);
+
+      console.log(isUserExits);
+
       const friends = isUserExits.friends.toString().split(",") ?? [];
       friends.push(userId);
 
+      let userIdsToSearch = [];
+      if (search) {
+        const users = await userModal
+          .find({
+            $or: [
+              { firstName: { $regex: search, $options: "i" } },
+              { lastName: { $regex: search, $options: "i" } },
+              { location: { $regex: search, $options: "i" } },
+              { profession: { $regex: search, $options: "i" } },
+            ],
+          })
+          .select("_id");
+        userIdsToSearch = users.map((user) => user._id.toString());
+      }
+
+      // Kết hợp tìm kiếm theo nội dung hoặc người dùng
       const searchQuery = {
         $or: [
-          {
-            content: { $regex: search, $options: "i" },
-          },
+          { content: { $regex: search, $options: "i" } },
+          { userId: { $in: [...userIdsToSearch] } },
         ],
       };
 
@@ -53,7 +94,7 @@ const postController = {
         .find(search ? searchQuery : {})
         .populate({
           path: "userId",
-          select: "firstName lastName location avatar -password",
+          select: "firstName lastName location profession avatar -password",
         })
         .sort({ _id: -1 });
 
@@ -125,10 +166,11 @@ const postController = {
         .sort({ _id: -1 });
 
       if (isPostExits) {
+        const userPosts = isPostExits;
         return res.status(200).json({
           status: true,
           message: "This is post of user" + id,
-          data: isPostExits,
+          data: userPosts,
         });
       }
     } catch (error) {

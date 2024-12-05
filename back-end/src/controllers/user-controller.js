@@ -240,6 +240,7 @@ const userController = {
           return res.status(201).json({
             status: true,
             message: "Friend request sent succesfully",
+            receiver: request_receiver,
           });
         }
       }
@@ -365,9 +366,28 @@ const userController = {
     try {
       const { userId } = req.body.user;
 
-      let queryObject = {};
-      queryObject._id = { $ne: userId };
-      queryObject.friends = { $nin: userId };
+      // Lấy danh sách các user đã gửi hoặc nhận yêu cầu kết bạn từ userId
+      const sentFriendRequests = await friendModal
+        .find({ request_from: userId })
+        .select("request_receiver")
+        .lean();
+
+      const receivedFriendRequests = await friendModal
+        .find({ request_receiver: userId })
+        .select("request_from")
+        .lean();
+
+      // Chuyển đổi danh sách ID thành một mảng các ID cần loại trừ
+      const excludeIds = [
+        userId,
+        ...sentFriendRequests.map((fr) => fr.request_receiver),
+        ...receivedFriendRequests.map((fr) => fr.request_from),
+      ];
+
+      let queryObject = {
+        _id: { $nin: excludeIds },
+        friends: { $nin: userId },
+      };
 
       let queryResults = userModal
         .find(queryObject)
@@ -375,12 +395,14 @@ const userController = {
         .select("firstName lastName avatar location profession -password");
 
       const suggestedFriends = await queryResults;
-      console.log(suggestedFriends);
-
-      return res.status(200).json({
-        status: true,
-        friends: suggestedFriends,
-      });
+      if (suggestedFriends.length === 0) {
+        return res.status(200).json({ status: true, friends: [] });
+      } else {
+        return res.status(200).json({
+          status: true,
+          friends: suggestedFriends || [],
+        });
+      }
     } catch (error) {
       console.log(error);
       return res.status(404).json({

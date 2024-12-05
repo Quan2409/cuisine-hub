@@ -33,7 +33,10 @@ router.post(
 );
 
 // get all post
-router.get("/", authMiddleware, postController.searchPost);
+router.get("/", authMiddleware, postController.getAllPosts);
+
+// get all post
+router.post("/search", authMiddleware, postController.searchPost);
 
 //delete post
 router.delete("/:id", authMiddleware, postController.deletePost);

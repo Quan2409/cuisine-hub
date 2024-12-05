@@ -23,6 +23,12 @@ const { login } = userSlice.actions;
 const Home = () => {
   const [friendsRequest, setFriendRequest] = useState([]);
   const [suggestFriends, setSuggestFriend] = useState([]);
+  const [haveSentRequest, setHaveSendRequest] = useState([]);
+
+  // friendsRequest.forEach((fr, index) => {
+  //   console.log(`Friend Request [${index}]:`, fr.request_receiver);
+  // });
+
   const [errMsg, setErrMsg] = useState("");
   const [fileName, setFilenName] = useState("");
   const [file, setFile] = useState(null);
@@ -107,7 +113,6 @@ const Home = () => {
           token: user.token,
         });
         await getPost();
-        console.log(response);
       } catch (error) {
         console.log(error);
       }
@@ -132,9 +137,18 @@ const Home = () => {
         url: "/user/suggested-friends",
         token: user.token,
       });
-      setSuggestFriend(response.friends);
+      if (response.friends.length > 0) {
+        setSuggestFriend(response.friends);
+      } else {
+        setSuggestFriend([]);
+      }
     } catch (error) {
-      console.log(error);
+      if (error.response?.status === 404) {
+        console.info("No suggested friends found.");
+      } else {
+        console.error("Error fetching suggested friends:", error);
+      }
+      setSuggestFriend([]);
     }
   };
 
@@ -147,7 +161,6 @@ const Home = () => {
         data: { request_receiver: id },
       });
       console.log(response);
-      await getSuggestFriends();
     } catch (error) {
       console.log(error);
     }
@@ -165,12 +178,20 @@ const Home = () => {
 
       setFriendRequest((prevState) => {
         if (status === "Accepted") {
-          // Cập nhật trạng thái yêu cầu thành Accepted
+          setFriendRequest((prevState) =>
+            prevState.map((request) =>
+              request.id === id ? { ...request, status: "Accepted" } : request
+            )
+          );
           return prevState.map((request) =>
             request.id === id ? { ...request, status: "Accepted" } : request
           );
         } else if (status === "Denied") {
-          // Loại bỏ yêu cầu khỏi danh sách nếu bị Denied
+          setFriendRequest((prevState) =>
+            prevState.map((request) =>
+              request.id === id ? { ...request, status: "Denied" } : request
+            )
+          );
           return prevState.map((request) =>
             request.id !== id ? { ...request, status: "Denied" } : request
           );
@@ -207,7 +228,7 @@ const Home = () => {
   return (
     <>
       <div className="px-0 pb-20 w-full h-screen overflow-hidden bg-backgroundColor lg:px-10 xxl:px-40 ">
-        <TopBar />
+        <TopBar getAllPosts={getPosts} />
         <div className="flex gap-2 pt-5 pb-10 w-full h-full lg:gap-4">
           {/* left-side */}
           <div className="hidden w-1/3 h-full lg:w-1/4 md:flex flex-col gap-6 overflow-y-auto">
@@ -273,9 +294,6 @@ const Home = () => {
 
                   <div>
                     {fileName && (
-                      // <span className="ml-2 text-sm text-gray-500">
-                      //   ({fileName})
-                      // </span>
                       <img
                         src={URL.createObjectURL(file)}
                         width={50}
@@ -395,11 +413,18 @@ const Home = () => {
                     </Link>
 
                     <div className="flex items-center gap-1">
-                      <Button
-                        title="Add"
-                        containerStyle="w-[60px] bg-[#fff242] text-xs text-black px-2 py-2 rounded-full"
-                        onClick={() => sendFriendRequest(friends._id)}
-                      />
+                      {suggestFriends.map((friend) => {
+                        return (
+                          <Button
+                            key={friend._id}
+                            title="Add"
+                            containerStyle="w-[60px] bg-[#fff242] text-xs text-black px-2 py-2 rounded-full"
+                            onClick={() => {
+                              sendFriendRequest(friend._id);
+                            }}
+                          />
+                        );
+                      })}
                     </div>
                   </div>
                 ))}

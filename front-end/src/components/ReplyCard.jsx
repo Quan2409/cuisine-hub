@@ -5,7 +5,7 @@ import moment from "moment";
 import { sendRequest } from "../service/service";
 
 const ReplyCard = ({ comment, setComments, user, reply }) => {
-  console.log(comment);
+  console.log(reply);
 
   const likeReply = async (id) => {
     try {
@@ -41,17 +41,15 @@ const ReplyCard = ({ comment, setComments, user, reply }) => {
       <div className="flex gap-3 items-center mb-1">
         <Link to={"/porfile/" + comment.userId._id}>
           <img
-            src={comment.userId.avatar ?? "/user.png"}
-            alt={comment.userId.firstName}
+            src={reply.userId.avatar ?? "/user.png"}
+            alt={reply.userId.firstName}
             className="w-14 h-14 rounded-full object-cover"
           />
         </Link>
 
         <div>
           <Link to={"/porfile/" + comment.userId._id}>
-            <p className="font-medium text-base text-ascent-1">
-              {comment.from}
-            </p>
+            <p className="font-medium text-base text-ascent-1">{reply.from}</p>
           </Link>
           <span className="text-ascent-2 text-sm">
             {moment(comment.createdAt).fromNow()}

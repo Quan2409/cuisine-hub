@@ -2,12 +2,17 @@ import React from "react";
 import { BsSunFill, BsMoon } from "react-icons/bs";
 import { useForm } from "react-hook-form";
 import { useDispatch, useSelector } from "react-redux";
-import { Link } from "react-router-dom";
-import TextInput from "./TextInput";
-import Button from "./Button";
+import { Link, useNavigate } from "react-router-dom";
+import qs from "qs";
 
 import { themeSlice } from "../redux/slice/themeSlice";
 import { userSlice } from "../redux/slice/userSlice";
+import { postSlice } from "../redux/slice/postSlice";
+
+import { sendRequest } from "../service/service.js";
+
+import TextInput from "./TextInput";
+import Button from "./Button";
 
 const { setTheme } = themeSlice.actions;
 const { logout } = userSlice.actions;
@@ -21,10 +26,13 @@ const TopBar = () => {
 
   const { theme } = useSelector((state) => state.theme);
   const { user } = useSelector((state) => state.user);
+  const { getPosts } = postSlice.actions;
   const dispatch = useDispatch();
+  const navigate = useNavigate();
 
   const handleSearch = async (data) => {
-    //
+    const query = qs.stringify({ search: data.search });
+    navigate(`/search?${query}`);
   };
 
   const handleTheme = () => {

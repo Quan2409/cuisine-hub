@@ -47,6 +47,8 @@ const CommentForm = ({
         method: "POST",
       });
 
+      console.log(response);
+
       if (response.status === false) {
         setErrMsg(response);
       } else {

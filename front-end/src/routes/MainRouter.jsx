@@ -6,6 +6,7 @@ import Register from "../pages/Register";
 import Profile from "../pages/Profile";
 import ResetPassword from "../pages/ResetPassword";
 import ProtecRouter from "./ProtecRouter";
+import Search from "../pages/Search";
 
 const MainRouter = () => {
   return (
@@ -15,7 +16,7 @@ const MainRouter = () => {
           <Route path="/" element={<Home />}></Route>
           <Route path="/profile/:id?" element={<Profile />}></Route>
         </Route>
-
+        <Route path="/search" element={<Search />}></Route>
         <Route path="/register" element={<Register />}></Route>
         <Route path="/login" element={<Login />}></Route>
         <Route path="/reset-password" element={<ResetPassword />}></Route>

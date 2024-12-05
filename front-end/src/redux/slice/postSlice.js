@@ -11,5 +11,9 @@ export const postSlice = createSlice({
     getPosts(state, action) {
       state.posts = action.payload;
     },
+
+    getUserPost(state, action) {
+      state.posts = action.payload;
+    },
   },
 });

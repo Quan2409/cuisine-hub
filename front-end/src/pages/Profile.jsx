@@ -9,12 +9,15 @@ import PostCard from "../components/PostCard";
 import Loading from "../components/Loading";
 import EditProfile from "../components/EditProfile";
 
-import { posts } from "../assets/data";
+// import { posts } from "../assets/data";
+import { postSlice } from "../redux/slice/postSlice";
 import { sendRequest } from "../service/service";
 
 const Profile = () => {
   const { id } = useParams();
+  const { posts } = useSelector((state) => state.posts);
   const { user, edit } = useSelector((state) => state.user);
+  const { getUserPost } = postSlice.actions;
   const dispatch = useDispatch();
 
   const [userInfo, setUserInfo] = useState(user);
@@ -26,9 +29,6 @@ const Profile = () => {
         url: `/user/get-user/${id}`,
         token: user.token,
       });
-
-      console.log(response);
-
       if (response.message === "Authentication failed") {
         localStorage.removeItem("user");
         window.alert("user session has expried. login again");
@@ -42,12 +42,52 @@ const Profile = () => {
     }
   };
 
+  const getUserPosts = async () => {
+    try {
+      const response = await sendRequest({
+        url: `post/get-user-post/${id}`,
+        token: user.token,
+      });
+      dispatch(getUserPost(response.data));
+      setLoading(false);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  const deletePost = async (postId) => {
+    const confirm = window.confirm("Are you sure want to delete this post ?");
+    if (confirm) {
+      try {
+        const response = await sendRequest({
+          url: `/post/${postId}`,
+          method: "DELETE",
+          token: user.token,
+        });
+        await getUserPosts();
+      } catch (error) {
+        console.log(error);
+      }
+    }
+  };
+
+  const likePost = async (postId) => {
+    try {
+      const response = await sendRequest({
+        url: `/post/like/${postId}`,
+        method: "POST",
+        token: user.token,
+      });
+      await getUserPosts();
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
   useEffect(() => {
     getUser();
+    getUserPosts();
   }, [id]);
-
-  const handleDelete = () => {};
-  const handleLikePost = () => {};
 
   return (
     <>
@@ -68,8 +108,8 @@ const Profile = () => {
                   post={post}
                   key={post?._id}
                   user={user}
-                  deletePost={handleDelete}
-                  likePost={handleLikePost}
+                  deletePost={() => deletePost(post._id)}
+                  likePost={() => likePost(post._id)}
                 />
               ))
             ) : (

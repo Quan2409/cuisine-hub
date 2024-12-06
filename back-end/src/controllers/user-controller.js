@@ -9,40 +9,48 @@ const { sendResetPassword } = require("../utils/handle-email");
 const userController = {
   //view status page
   viewStatus: (req, res) => {
-    res.render("status", { layout: false });
+    res.render("status");
   },
 
   //view reset page
   viewResetPage: (req, res) => {
-    res.render("reset", { layout: false });
+    res.render("reset");
   },
 
   // verify account
-  verifyEmail: async (req, res, next) => {
-    // get id, and token from url
+  verifyEmail: async (req, res) => {
     const { userId, token } = req.params;
+
     try {
-      // query data to fine request base on id
+      // query to check is there any verify request
       const emailRecord = await verifyModal.findOne({ userId });
       if (!emailRecord) {
         const message = "No verification found";
         return res.redirect(`/user/verify?status=error&message=${message}`);
       }
 
-      // query data to check if token is expries or not
+      // query to check is token expired or not
       const { expiredAt, token: hashedToken } = emailRecord;
       if (expiredAt < Date.now()) {
-        await verifyModal.findOneAndDelete({ userId });
+        // query to delete user if token expired
         await userModal.findOneAndDelete({ _id: userId });
+
+        // query to delete verify request if token expired
+        await verifyModal.findOneAndDelete({ userId });
         const message = "Token has expired";
         res.redirect(`/user/verify?status=error&message=${message}`);
       }
 
-      // compare token with the token is hashed from database
+      // compare token from URL with the token from database
       const isMatch = await compareString(token, hashedToken);
+
       if (isMatch) {
+        // query to update verify status
         await userModal.findOneAndUpdate({ _id: userId }, { verified: true });
+
+        // query to delete handled verify request
         await verifyModal.findOneAndDelete({ userId });
+
         const message = "Email Verified Success";
         res.redirect(`/user/verify?status=success&message=${message}`);
       } else {
@@ -50,30 +58,37 @@ const userController = {
         res.redirect(`/user/verify?status=error&message=${message}`);
       }
     } catch (error) {
-      console.log(error);
-      res.status(404).json({ message: error.message });
+      return res.status(500).json({
+        status: false,
+        message: error.message,
+      });
     }
   },
 
   // send-reset-password-link
-  sendResetLink: async (req, res, next) => {
+  sendResetLink: async (req, res) => {
     const { email } = req.body;
-    const userRecord = await userModal.findOne({ email });
+
     try {
+      // query to check is account exits or not
+      const userRecord = await userModal.findOne({ email });
+
       if (!userRecord) {
         return res.status(404).json({
           status: false,
           message: "Email not found, please try again",
         });
       }
+
+      // send reset-password request
       await sendResetPassword(userRecord, res);
       return res.status(201).json({
         status: true,
         message: "Reset password link has been sent",
       });
     } catch (error) {
-      console.log(error);
       return res.status(404).json({
+        status: false,
         message: error.message,
       });
     }
@@ -81,8 +96,10 @@ const userController = {
 
   // handle reset-password-link
   handleResetLink: async (req, res) => {
+    const { userId, token } = req.params;
+
     try {
-      const { userId, token } = req.params;
+      // query to check is there any request or not
       const userRecord = await userModal.findById(userId);
       if (!userRecord) {
         const message = "No reset request found";
@@ -93,12 +110,13 @@ const userController = {
 
       const resetRecord = await resetModal.findOne({ userId });
       if (!resetRecord) {
-        const message = "Reset request is not found";
+        const message = "No reset request found";
         return res.redirect(
           `/user/reset-status?status=error&message=${message}`
         );
       }
 
+      // check token is expired or not
       const { expiredAt, token: hashedToken } = resetRecord;
       if (expiredAt < Date.now()) {
         const message = "Reset password link has expired";
@@ -107,6 +125,7 @@ const userController = {
         );
       }
 
+      // check token is match or not
       const isMatch = await compareString(token, hashedToken);
       if (isMatch) {
         return res.redirect(`/user/reset-password?type=reset&id=${userId}`);
@@ -118,40 +137,48 @@ const userController = {
       }
     } catch (error) {
       console.log(error);
-      return res.status(404).json({ message: error.message });
+      return res.status(404).json({
+        status: false,
+        message: error.message,
+      });
     }
   },
 
   // handle change-password
   changePassword: async (req, res) => {
+    const { userId, password } = req.body;
+    console.log(userId);
+
     try {
-      const { userId, password } = req.body;
       const hashedPassword = await hashString(password);
       const updateUser = await userModal.findByIdAndUpdate(
         { _id: userId },
         { password: hashedPassword }
       );
+
       if (updateUser) {
+        // query to delete handled request
         await resetModal.findOneAndDelete(userId);
         return res.status(200).json({
-          ok: true,
+          status: true,
+          message: "Password change successfully",
         });
       }
     } catch (error) {
-      console.log(error);
-      res.status(404).json({ message: error.message });
+      return res.status(404).json({
+        status: false,
+        message: error.message,
+      });
     }
   },
 
   // handle get all user profile
   getUser: async (req, res) => {
+    const { userId } = req.body.user;
+    const { id } = req.params;
+
     try {
-      const { userId } = req.body.user;
-      const { id } = req.params;
-
-      console.log("Params: ", id);
-      console.log("No Params: ", userId);
-
+      // query to check user exits or not
       const userRecord = await userModal.findById(id ?? userId).populate({
         path: "friends",
         select: "-password",
@@ -163,14 +190,12 @@ const userController = {
           message: "User not found",
         });
       }
-
       return res.status(200).json({
         status: true,
         user: userRecord,
       });
     } catch (error) {
-      console.log(error);
-      return res.status(500).json({
+      return res.status(404).json({
         status: false,
         message: error.message,
       });
@@ -181,6 +206,7 @@ const userController = {
   updateUser: async (req, res) => {
     const { userId } = req.body.user;
     const { firstName, lastName, profession, location, avatar } = req.body;
+
     try {
       const updateUser = {
         _id: userId,
@@ -191,10 +217,12 @@ const userController = {
         profession,
       };
 
-      const userRecord = await userModal.findByIdAndUpdate(userId, updateUser, {
-        new: true,
-      });
-      await userRecord.populate({ path: "friends", select: "-password" });
+      // query to update new user
+      const userRecord = await userModal
+        .findByIdAndUpdate(userId, updateUser, {
+          new: true,
+        })
+        .populate({ path: "friends", select: "-password" });
 
       const token = createToken(userRecord._id);
       return res.status(200).json({
@@ -204,8 +232,7 @@ const userController = {
         token,
       });
     } catch (error) {
-      console.log(error);
-      res.status(404).json({
+      return res.status(404).json({
         status: false,
         message: error.message,
       });
@@ -213,40 +240,42 @@ const userController = {
   },
 
   // handle sent friend request
-  sendFriendRequest: async (req, res, next) => {
+  sendFriendRequest: async (req, res) => {
     try {
       const { userId } = req.body.user;
       const { request_receiver } = req.body;
 
-      const requestModal = await friendModal.findOne({
+      // query to check is user has send or not
+      const isSent = await friendModal.findOne({
         request_from: userId,
         request_receiver,
       });
 
-      const accountExist = await friendModal.findOne({
+      // query to check is user has recive or not
+      const isReciver = await friendModal.findOne({
         request_from: request_receiver,
         request_receiver: userId,
       });
 
-      if (requestModal || accountExist) {
-        next("Friend Request already send");
-        return;
+      if (isSent || isReciver) {
+        return res.status(400).json({
+          status: false,
+          message: "Friend requst has been sent",
+        });
       } else {
-        const newRequest = await friendModal.create({
+        // query to create a new friend request
+        await friendModal.create({
           request_receiver,
           request_from: userId,
         });
-        if (newRequest) {
-          return res.status(201).json({
-            status: true,
-            message: "Friend request sent succesfully",
-            receiver: request_receiver,
-          });
-        }
+        return res.status(201).json({
+          status: true,
+          message: "Friend request sent succesfully",
+          receiver: request_receiver,
+        });
       }
     } catch (error) {
-      console.log(error);
-      res.status(404).json({
+      return res.status(404).json({
         status: false,
         message: error.message,
       });
@@ -255,9 +284,9 @@ const userController = {
 
   // handle get friend request
   getFriendRequest: async (req, res) => {
+    const { userId } = req.body.user;
     try {
-      const { userId } = req.body.user;
-
+      // query to get all request of reciver with max is 10
       const filterRequest = await friendModal
         .find({
           request_receiver: userId,
@@ -279,8 +308,7 @@ const userController = {
         });
       }
     } catch (error) {
-      console.log(error);
-      res.status(404).json({
+      return res.status(404).json({
         status: false,
         message: error.message,
       });
@@ -289,48 +317,49 @@ const userController = {
 
   // handle request accpeted
   acceptRequest: async (req, res) => {
-    try {
-      const { userId } = req.body.user;
-      const { request_id, request_status } = req.body;
+    const { userId } = req.body.user;
+    const { request_id, request_status } = req.body;
 
+    try {
+      // query to check is request exits or not
       const isRequestExist = await friendModal.findById(request_id);
       if (!isRequestExist) {
-        next("No friend request found");
-        return;
-      } else {
-        const newRequest = await friendModal.findByIdAndUpdate(
-          {
-            _id: request_id,
-            request_status: request_status,
-          },
-          { new: true }
-        );
-
-        if (request_status === "Accepted") {
-          const userRecord = await userModal.findById(userId);
-
-          userRecord.friends.push(newRequest.request_from);
-          await userRecord.save();
-
-          const friendRecord = await userModal.findById(
-            newRequest.request_from
-          );
-
-          friendRecord.friends.push(newRequest.request_receiver);
-          await friendRecord.save();
-          await friendModal.findByIdAndDelete(request_id);
-        } else if (request_status === "Denied") {
-          await friendModal.findByIdAndDelete(request_id);
-        }
-
-        return res.status(201).json({
-          status: true,
-          message: "Friend request " + request_status,
+        return res.status(400).json({
+          status: false,
+          message: "No friend request found",
         });
       }
+
+      // query to update request_status
+      const newRequest = await friendModal.findByIdAndUpdate(
+        {
+          _id: request_id,
+          request_status: request_status,
+        },
+        { new: true }
+      );
+
+      if (request_status === "Accepted") {
+        const userRecord = await userModal.findById(userId);
+        userRecord.friends.push(newRequest.request_from);
+        await userRecord.save();
+
+        const friendRecord = await userModal.findById(newRequest.request_from);
+        friendRecord.friends.push(newRequest.request_receiver);
+        await friendRecord.save();
+
+        // query to delete handled request
+        await friendModal.findByIdAndDelete(request_id);
+      } else if (request_status === "Denied") {
+        await friendModal.findByIdAndDelete(request_id);
+      }
+
+      return res.status(201).json({
+        status: true,
+        message: "Friend request " + request_status,
+      });
     } catch (error) {
-      console.log(error);
-      res.status(404).json({
+      return res.status(404).json({
         status: false,
         message: error.message,
       });
@@ -342,6 +371,7 @@ const userController = {
     try {
       const { userId } = req.body.user;
       const { id } = req.body;
+
       const userRecord = await userModal.findById(id);
       userRecord.views.push(userId);
       await userRecord.save();
@@ -353,8 +383,7 @@ const userController = {
         });
       }
     } catch (error) {
-      console.log(error);
-      res.status(404).json({
+      return res.status(404).json({
         status: false,
         message: error.message,
       });
@@ -366,7 +395,7 @@ const userController = {
     try {
       const { userId } = req.body.user;
 
-      // Lấy danh sách các user đã gửi hoặc nhận yêu cầu kết bạn từ userId
+      // get recvie or sent request
       const sentFriendRequests = await friendModal
         .find({ request_from: userId })
         .select("request_receiver")
@@ -384,11 +413,13 @@ const userController = {
         ...receivedFriendRequests.map((fr) => fr.request_from),
       ];
 
+      // create query object
       let queryObject = {
         _id: { $nin: excludeIds },
         friends: { $nin: userId },
       };
 
+      // query to get 15 user include personal information.
       let queryResults = userModal
         .find(queryObject)
         .limit(15)
@@ -400,11 +431,10 @@ const userController = {
       } else {
         return res.status(200).json({
           status: true,
-          friends: suggestedFriends || [],
+          friends: suggestedFriends,
         });
       }
     } catch (error) {
-      console.log(error);
       return res.status(404).json({
         status: false,
         message: error.message,

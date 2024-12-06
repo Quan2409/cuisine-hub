@@ -8,10 +8,10 @@ router.get("/verify", userController.viewStatus);
 router.get("/verify/:userId/:token", userController.verifyEmail);
 
 // reset-password
+router.get("/reset-status", userController.viewStatus);
 router.post("/reset-request", userController.sendResetLink);
 router.get("/reset-password/:userId/:token", userController.handleResetLink);
 router.get("/reset-password", userController.viewResetPage);
-router.get("/reset-status", userController.viewStatus);
 router.post("/change-password", userController.changePassword);
 
 // user-profile

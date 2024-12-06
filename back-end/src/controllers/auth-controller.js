@@ -4,75 +4,86 @@ const { sendVerificationEmail } = require("../utils/handle-email");
 const createToken = require("../utils/handle-token");
 
 const authController = {
-  // account register
+  // sign-up function
   handleSignUp: async (req, res, next) => {
-    const { firstName, lastName, email, password, confirm } = req.body;
+    const { firstName, lastName, email, password, createdAt } = req.body;
     try {
-      if (!confirm) {
-        errors.push("Confirm password is required");
-      } else if (password !== confirm) {
-        errors.push("Confirm Password is not match");
-      }
+      // check if email already exits
       const userRecord = await userModal.findOne({ email });
       if (userRecord) {
-        next("Email is already exist, please try again");
-        return;
+        return res.status(400).json({
+          status: false,
+          message: "Email is already exist, please try again",
+        });
       }
+
+      // hash-password
       const hashedPassword = await hashString(password);
+
+      // query to create a new user
       const newUser = await userModal.create({
         firstName,
         lastName,
         email,
         password: hashedPassword,
+        createdAt,
       });
+
+      // send email verification
       await sendVerificationEmail(newUser, res);
+
       return res.status(201).send({
         status: true,
         message: "Verification email has been sent to your email",
       });
     } catch (error) {
-      console.log(error);
-      return res.status(400).json({ message: "Internal server error" });
+      return res.status(500).json({
+        status: false,
+        message: error.message,
+      });
     }
   },
 
-  // account login
+  // sign-in function
   handleSignIn: async (req, res, next) => {
     const { email, password } = req.body;
     try {
-      // query to search user base on email
-      const userRecord = await userModal
-        .findOne({ email })
-        .select("+password")
-        .populate({
-          path: "friends",
-          select: "firstName lastName location avatar -password",
-        });
-
+      // queery to check if user exits or not
+      const userRecord = await userModal.findOne({ email }).select("+password");
       if (!userRecord) {
-        next("Account is not found, try again");
-        return;
+        return res.status(404).json({
+          status: false,
+          message: "User is not found, please try again",
+        });
       }
 
       if (!userRecord.verified) {
-        next("Account is not verified. Check your email");
-        return;
+        return res.status(400).json({
+          status: false,
+          message: "User is not verifed, please check your email",
+        });
       }
 
+      // compare password from database with input value
       const isMatch = await compareString(password, userRecord.password);
       if (!isMatch) {
-        next("Password is incorect, try again");
-        return;
+        return res.status(400).json({
+          status: false,
+          message: "Password is incorect, please try again",
+        });
       }
+
+      // create new-token
       const token = createToken(userRecord._id);
-      res.status(201).json({
+
+      return res.status(201).json({
         message: "Account Login Successfully",
         token: token,
         user: userRecord,
       });
     } catch (error) {
-      res.status(404).json({
-        status: "failed",
+      return res.status(500).json({
+        status: false,
         message: error.message,
       });
     }

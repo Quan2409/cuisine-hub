@@ -9,7 +9,6 @@ const userId = urlParams.get("id");
 const handleSubmit = async (e) => {
   e.preventDefault();
 
-  const success = document.querySelector(".form-success");
   const newPassword = document.querySelector(".password-input");
   const retypePassword = document.querySelector(".retype-input");
   const passwordError = document.querySelector(".password-error");
@@ -22,7 +21,7 @@ const handleSubmit = async (e) => {
     passwordError.innerText = "Password must be at least 6 characters";
     return;
   } else if (!/^\S+$/.test(newPassword.value)) {
-    passwordError.innerText = "Password must be npt contian white space";
+    passwordError.innerText = "Password must be not contian white space";
   } else {
     passwordError.innerText = "";
   }
@@ -49,7 +48,6 @@ const handleSubmit = async (e) => {
       body: JSON.stringify({ userId, password }),
     });
     if (response.ok) {
-      // success.innerText = "Password reset success";
       container.innerHTML = `
         <div class="reset-success">
           <h1>Reset Password Successfully</h1>

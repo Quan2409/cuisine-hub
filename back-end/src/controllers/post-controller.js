@@ -10,8 +10,10 @@ const postController = {
 
     try {
       if (!content) {
-        next("Enter some content, please");
-        return;
+        return res.status(400).json({
+          status: false,
+          message: "Enter some content, pleas,...",
+        });
       }
       const post = await postModal.create({
         userId,
@@ -25,11 +27,14 @@ const postController = {
         data: post,
       });
     } catch (error) {
-      console.log(error);
-      return res.status(404).json({ message: error.message });
+      return res.status(404).json({
+        status: false,
+        message: error.message,
+      });
     }
   },
 
+  // get all posts
   getAllPosts: async (req, res) => {
     try {
       const posts = await postModal
@@ -46,27 +51,26 @@ const postController = {
         data: posts,
       });
     } catch (error) {
-      console.log(error);
       return res.status(404).json({
         message: error.message,
       });
     }
   },
 
+  // search-post
   searchPost: async (req, res) => {
     const { userId } = req.body.user;
     const { search } = req.body;
 
     try {
       const isUserExits = await userModal.findById(userId);
-
-      console.log(isUserExits);
-
       const friends = isUserExits.friends.toString().split(",") ?? [];
+      console.log(friends);
       friends.push(userId);
 
-      let userIdsToSearch = [];
+      let searchQuery = {};
       if (search) {
+        // create condition to search based on user information
         const users = await userModal
           .find({
             $or: [
@@ -77,56 +81,48 @@ const postController = {
             ],
           })
           .select("_id");
-        userIdsToSearch = users.map((user) => user._id.toString());
+
+        const userIdsToSearch = users.map((user) => user._id.toString());
+
+        // create condition to search based on post content
+        searchQuery = {
+          $or: [
+            { content: { $regex: search, $options: "i" } },
+            { userId: { $in: userIdsToSearch } },
+          ],
+        };
+      } else if (search === "") {
+        res.status(404).json({
+          status: false,
+          mesage: "Enter some search term",
+        });
       }
 
-      // Kết hợp tìm kiếm theo nội dung hoặc người dùng
-      const searchQuery = {
-        $or: [
-          { content: { $regex: search, $options: "i" } },
-          { userId: { $in: [...userIdsToSearch] } },
-        ],
-      };
-
-      const queryPost = await postModal
-        .find(search ? searchQuery : {})
+      // search post
+      const posts = await postModal
+        .find(searchQuery)
         .populate({
           path: "userId",
           select: "firstName lastName location profession avatar -password",
         })
         .sort({ _id: -1 });
 
-      const friendPosts = queryPost.filter((post) => {
-        return friends.includes(post.userId._id.toString());
-      });
-
-      const otherPosts = queryPost.filter((post) => {
-        !friends.includes(post.userId._id.toString());
-      });
-
-      let postResponse = null;
-      if (friendPosts.length > 0) {
-        postResponse = search ? friendPosts : [...friendPosts, ...otherPosts];
-      } else {
-        postResponse = queryPost;
-      }
-
       return res.status(200).json({
         status: true,
         message: "Search query result: ",
-        data: postResponse,
+        data: posts,
       });
     } catch (error) {
-      console.log(error);
       return res.status(404).json({
         message: error.message,
       });
     }
   },
 
+  // get post by id
   getPostById: async (req, res) => {
+    const { id } = req.params;
     try {
-      const { id } = req.params;
       const isPostExits = await postModal.findById(id).populate({
         path: "userId",
         select: "firstName lastName location, avatar -password",
@@ -145,13 +141,13 @@ const postController = {
         });
       }
     } catch (error) {
-      console.log(error);
       return res.status(404).json({
         message: error.message,
       });
     }
   },
 
+  // get user's post
   getUserPosts: async (req, res) => {
     const { id } = req.params;
     try {
@@ -172,17 +168,16 @@ const postController = {
         });
       }
     } catch (error) {
-      console.log(error);
       return res.status(404).json({
         message: error.message,
       });
     }
   },
 
+  // get comments
   getComments: async (req, res) => {
+    const { postId } = req.params;
     try {
-      const { postId } = req.params;
-
       const hasComment = await commentModal
         .find({ postId })
         .populate({
@@ -196,7 +191,7 @@ const postController = {
         .sort({ _id: 1 });
 
       if (!hasComment || hasComment.length === 0) {
-        return res.status(200).json({
+        return res.status(400).json({
           status: false,
           message: "No comments found for post " + postId,
         });
@@ -210,13 +205,13 @@ const postController = {
         });
       }
     } catch (error) {
-      console.log(error);
       return res.status(404).json({
         message: error.message,
       });
     }
   },
 
+  // like posts
   likePosts: async (req, res) => {
     const { userId } = req.body.user;
     const { id } = req.params;
@@ -237,94 +232,20 @@ const postController = {
         }
       }
       const postUpdate = await postModal.findByIdAndUpdate(id, postRecord);
+
       return res.status(200).json({
         status: true,
         message: "Post is liked",
         data: postUpdate,
       });
     } catch (error) {
-      console.log(error);
       return res.status(404).json({
         message: error.message,
       });
     }
   },
 
-  likeComment: async (req, res) => {
-    const { userId } = req.body.user;
-    const { id, replyId } = req.params;
-    console.log(id);
-    console.log(replyId);
-
-    try {
-      if (replyId === undefined || replyId === null || replyId === false) {
-        const commentRecord = await commentModal.findById(id);
-        const index = commentRecord.likes.findIndex(
-          (i) => i === String(userId)
-        );
-        if (index === -1) {
-          commentRecord.likes.push(userId);
-        } else {
-          commentRecord.likes = commentRecord.likes.filter(
-            (i) => i !== String(userId)
-          );
-        }
-
-        const updateComment = await commentModal.findByIdAndUpdate(
-          id,
-          commentRecord
-        );
-
-        return res.status(201).json({
-          status: true,
-          message: "Comment is liked",
-          data: updateComment,
-        });
-      } else {
-        const findReplyCommement = await commentModal.findOne(
-          { _id: id },
-          {
-            replies: {
-              $elemMatch: {
-                _id: replyId,
-              },
-            },
-          }
-        );
-
-        const index = findReplyCommement.replies[0].likes.findIndex(
-          (i) => i === String(userId)
-        );
-        if (index === -1) {
-          findReplyCommement.replies[0].likes.push(userId);
-        } else {
-          findReplyCommement.replies[0].likes =
-            findReplyCommement.replies[0].likes.filter(
-              (i) => i !== String(userId)
-            );
-        }
-
-        const query = { _id: id, "replies._id": replyId };
-        const updateReplyComment = {
-          $set: {
-            "replies.$.likes": findReplyCommement.replies[0].likes,
-          },
-        };
-        await commentModal.updateOne(query, updateReplyComment);
-        return res.status(201).json({
-          status: true,
-          message: "An reply is liked in comment" + id,
-          data: updateReplyComment,
-        });
-      }
-    } catch (error) {
-      console.log(error);
-      return res.status(404).json({
-        message: error.message,
-      });
-    }
-  },
-
+  // comment post
   commentPost: async (req, res, next) => {
     const { comment, from } = req.body;
     const { userId } = req.body.user;
@@ -332,23 +253,22 @@ const postController = {
 
     try {
       if (!comment) {
-        next("Enter some comment, please");
-        return;
+        res.status(400).json({
+          status: false,
+          message: "Please, enter some comment",
+        });
       }
 
       const userInfo = await userModal.findById(userId);
-      const postInfo = await postModal.findById(id).populate({
-        path: "userId",
-        select: "firstName lastName avatar location profession -password",
-      });
+      const postInfo = await postModal.findById(id);
 
+      // query to create a new a comment
       const newComment = await commentModal.create({
         userId: userInfo,
         postId: id,
         comment,
         from,
       });
-
       postInfo.comments.push(newComment._id);
       await postInfo.save();
 
@@ -358,13 +278,85 @@ const postController = {
         comment: newComment,
       });
     } catch (error) {
-      console.log(error);
       return res.status(404).json({
         message: error.message,
       });
     }
   },
 
+  // like comment
+  likeComment: async (req, res) => {
+    const { userId } = req.body.user;
+    const { id, replyId } = req.params;
+
+    try {
+      if (!replyId) {
+        // query to find comment in based on comment id (id)
+        const commentRecord = await commentModal.findById(id);
+
+        //check is user exits on like list or not
+        const index = commentRecord.likes.findIndex(
+          (i) => i === String(userId)
+        );
+
+        if (index === -1) {
+          commentRecord.likes.push(userId);
+        } else {
+          commentRecord.likes = commentRecord.likes.filter(
+            (i) => i !== String(userId)
+          );
+        }
+        const updateComment = await commentModal.findByIdAndUpdate(
+          id,
+          commentRecord
+        );
+        return res.status(201).json({
+          status: true,
+          message: "Comment is liked",
+          data: updateComment,
+        });
+      } else {
+        const query = { _id: id, "replies._id": replyId };
+        const comment = await commentModal.findOne(query);
+
+        if (!comment) {
+          return res.status(404).json({
+            status: false,
+            message: "Reply not found",
+          });
+        }
+
+        const reply = comment.replies.find(
+          (reply) => String(reply._id) === String(replyId)
+        );
+        const index = reply.likes.findIndex((i) => i === String(userId));
+
+        if (index === -1) {
+          reply.likes.push(userId);
+        } else {
+          reply.likes = reply.likes.filter((i) => i !== String(userId));
+        }
+
+        await commentModal.updateOne(
+          { _id: id, "replies._id": replyId },
+          { $set: { "replies.$.likes": reply.likes } }
+        );
+
+        return res.status(200).json({
+          status: true,
+          message: "Reply liked",
+          data: { replyId, likes: reply.likes },
+        });
+      }
+    } catch (error) {
+      return res.status(404).json({
+        status: false,
+        message: error.message,
+      });
+    }
+  },
+
+  // reply comment
   replyComment: async (req, res, next) => {
     const { userId } = req.body.user;
     const { comment, replyAt, from } = req.body;
@@ -372,16 +364,14 @@ const postController = {
 
     try {
       if (!comment) {
-        next("Comment is required");
-        return;
+        res.status(400).json({
+          status: false,
+          message: "Please, enter some comment",
+        });
       }
 
       const userInfo = await userModal.findById(userId);
-      const commentRecord = await commentModal.findById(id).populate({
-        path: "userId",
-        select: "firstName lastName avatar",
-      });
-
+      const commentRecord = await commentModal.findById(id);
       commentRecord.replies.push({
         comment,
         replyAt,
@@ -389,23 +379,22 @@ const postController = {
         userId: userInfo,
         createdAt: Date.now(),
       });
+      await commentRecord.save();
 
-      const updateComment = await commentRecord.save();
-      if (updateComment) {
-        return res.status(200).json({
-          status: true,
-          message: "A reply has created in comment" + id,
-          data: updateComment,
-        });
-      }
+      return res.status(200).json({
+        status: true,
+        message: "A reply has created in comment" + id,
+        data: commentRecord,
+      });
     } catch (error) {
-      console.log(error);
       return res.status(404).json({
+        status: false,
         message: error.message,
       });
     }
   },
 
+  // delete post
   deletePost: async (req, res, next) => {
     const { id } = req.params;
 
@@ -416,8 +405,10 @@ const postController = {
         message: "Post is deleted",
       });
     } catch (error) {
-      console.log(error);
-      return res.status(404).json({ message: error.message });
+      return res.status(404).json({
+        status: false,
+        message: error.message,
+      });
     }
   },
 };

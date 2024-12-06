@@ -8,6 +8,7 @@ const { hashString } = require("./handle-string");
 // config env
 dotenv.config();
 
+// config transporter
 const transporter = nodemailer.createTransport({
   service: "Gmail",
   auth: {
@@ -19,7 +20,6 @@ const transporter = nodemailer.createTransport({
 const sendVerificationEmail = async (user, res) => {
   const { _id, email, lastName } = user;
   const token = _id + createUUID();
-  console.log(process.env.APP_URL);
 
   const link = process.env.APP_URL + "user/verify/" + _id + "/" + token;
 
@@ -51,6 +51,8 @@ const sendVerificationEmail = async (user, res) => {
 
   try {
     const hashedToken = await hashString(token);
+
+    // create new verify request
     const newVerifiedEmail = await verifyModal.create({
       userId: _id,
       token: hashedToken,
@@ -60,8 +62,8 @@ const sendVerificationEmail = async (user, res) => {
     if (newVerifiedEmail) {
       transporter.sendMail(mailOption, (error) => {
         if (error) {
-          console.log(error);
           return res.status(404).json({
+            status: false,
             message: `Sending message fail: ${error}`,
           });
         }
@@ -69,6 +71,7 @@ const sendVerificationEmail = async (user, res) => {
     }
   } catch (error) {
     res.status(404).json({
+      status: false,
       message: `Verification error: ${error} `,
     });
   }
@@ -100,6 +103,8 @@ const sendResetPassword = async (user, res) => {
   };
   try {
     const hashedToken = await hashString(token);
+
+    // create new reset-password request
     const newRequest = await resetModal.create({
       userId: _id,
       email: email,
@@ -109,11 +114,20 @@ const sendResetPassword = async (user, res) => {
     });
 
     if (newRequest) {
-      await transporter.sendMail(mailOption);
+      transporter.sendMail(mailOption, (error) => {
+        if (error) {
+          return res.status(404).json({
+            status: false,
+            message: `Sending message fail: ${error}`,
+          });
+        }
+      });
     }
   } catch (error) {
-    console.log(error);
-    res.status(404).json({ message: error.message });
+    return res.status(404).json({
+      status: false,
+      message: error.message,
+    });
   }
 };
 

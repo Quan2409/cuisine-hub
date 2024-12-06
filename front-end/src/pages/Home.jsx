@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { Link } from "react-router-dom";
 import { useForm } from "react-hook-form";
-import { BiImageAdd } from "react-icons/bi";
+import { BiImageAdd, BiVideoPlus } from "react-icons/bi";
 
 import Button from "../components/Button";
 import TextInput from "../components/TextInput";
@@ -63,8 +63,8 @@ const Home = () => {
     setIsPosting(true);
 
     try {
-      const img = file && (await handleUpload(file));
-      const newData = img ? { ...data, image: img } : data;
+      const media = file && (await handleUpload(file));
+      const newData = media ? { ...data, media: media } : data;
       const response = await sendRequest({
         url: "/post/create-post",
         token: user.token,
@@ -174,26 +174,21 @@ const Home = () => {
         method: "POST",
         data: { request_id: id, request_status: status },
       });
-      console.log(response);
 
       setFriendRequest((prevState) => {
         if (status === "Accepted") {
+          window.alert("You have a new friend !!");
           setFriendRequest((prevState) =>
             prevState.map((request) =>
               request.id === id ? { ...request, status: "Accepted" } : request
             )
           );
-          return prevState.map((request) =>
-            request.id === id ? { ...request, status: "Accepted" } : request
-          );
         } else if (status === "Denied") {
+          window.alert("You have deny new friend !!");
           setFriendRequest((prevState) =>
             prevState.map((request) =>
               request.id === id ? { ...request, status: "Denied" } : request
             )
-          );
-          return prevState.map((request) =>
-            request.id !== id ? { ...request, status: "Denied" } : request
           );
         }
         return prevState;
@@ -238,83 +233,104 @@ const Home = () => {
 
           {/* center-side */}
           <div className="flex-1 h-full px-4 flex flex-col gap-6 rounded-lg overflow-y-auto overscroll-y-auto">
-            <form
-              className="bg-primaryColor px-4 rounded-lg"
-              onSubmit={handleSubmit(createPost)}
-            >
-              <div className="w-full flex items-center gap-2 py-4 border-b border-[#66666645]">
-                <img
-                  src={user.avatar ?? "/user.png"}
-                  alt={user.firstName}
-                  className="w-14 h-14 rounded-full object-cover"
-                />
-                <TextInput
-                  styles="w-full rounded-full py-5"
-                  placeholder="What the recipe for today..."
-                  name="content"
-                  register={register("content", {
-                    required: "Write something about posts",
-                  })}
-                  error={errors.content ? errors.content.message : ""}
-                />
-                {errMsg.message && (
-                  <span
-                    role="alert"
-                    className={`text-sm ${
-                      errMsg.status === "failed"
-                        ? "text-[#f64949fe]"
-                        : "text-[#2ba150fe]"
-                    } mt-0.5`}
-                  ></span>
-                )}
-              </div>
-
-              <div className="flex items-center justify-between py-4">
-                <label
-                  htmlFor="img-upload"
-                  className="flex items-center gap-1 text-base text-ascent-2 hover:text-ascent-1 cursor-pointer"
-                >
-                  <input
-                    type="file"
-                    onChange={(e) => {
-                      const file = e.target.files[0];
-                      console.log(file);
-                      if (file) {
-                        setFile(file);
-                        setFilenName(file.name);
-                      }
-                    }}
-                    className="hidden"
-                    id="img-upload"
-                    data-max-size="5120"
-                    accept=".jpg, .png, .jpeg"
+            {isPost ? (
+              <Loading />
+            ) : (
+              <form
+                className="bg-primaryColor px-4 rounded-lg"
+                onSubmit={handleSubmit(createPost)}
+              >
+                <div className="w-full flex items-center gap-2 py-4 border-b border-[#66666645]">
+                  <img
+                    src={user.avatar ?? "/user.png"}
+                    alt={user.firstName}
+                    className="w-14 h-14 rounded-full object-cover"
                   />
-                  <BiImageAdd />
-                  <span>Image</span>
+                  <TextInput
+                    styles="w-full rounded-full py-5"
+                    placeholder="What the recipe for today..."
+                    name="content"
+                    register={register("content", {
+                      required: "Write something about posts",
+                    })}
+                    error={errors.content ? errors.content.message : ""}
+                  />
+                  {errMsg.message && (
+                    <span
+                      role="alert"
+                      className={`text-sm ${
+                        errMsg.status === "failed"
+                          ? "text-[#f64949fe]"
+                          : "text-[#2ba150fe]"
+                      } mt-0.5`}
+                    ></span>
+                  )}
+                </div>
 
-                  <div>
-                    {fileName && (
-                      <img
-                        src={URL.createObjectURL(file)}
-                        width={50}
-                        height={20}
-                        alt={fileName}
-                      />
+                <div className="flex items-center justify-between py-4">
+                  <label
+                    htmlFor="img-upload"
+                    className="flex items-center gap-1 text-base text-ascent-2 hover:text-ascent-1 cursor-pointer"
+                  >
+                    <input
+                      type="file"
+                      onChange={(e) => {
+                        const file = e.target.files[0];
+                        if (file) {
+                          setFile(file);
+                          setFilenName(file.name);
+                        }
+                      }}
+                      className="hidden"
+                      id="img-upload"
+                      data-max-size="5120"
+                      accept=".jpg, .png, .jpeg"
+                    />
+                    {file && file.type.startsWith("image/") ? (
+                      <span>{fileName}</span>
+                    ) : (
+                      <>
+                        <BiImageAdd />
+                        <span>Image</span>
+                      </>
                     )}
-                  </div>
-                </label>
+                  </label>
 
-                {isPost ? (
-                  <Loading />
-                ) : (
+                  <label
+                    htmlFor="video-upload"
+                    className="flex items-center gap-1 text-base text-ascent-2 hover:text-ascent-1 cursor-pointer"
+                  >
+                    <input
+                      type="file"
+                      onChange={(e) => {
+                        const file = e.target.files[0];
+                        if (file) {
+                          setFile(file);
+                          setFilenName(file.name);
+                        }
+                      }}
+                      className="hidden"
+                      id="video-upload"
+                      data-max-size="5120"
+                      accept=".mp4, .wav"
+                    />
+                    {file && file.type.startsWith("video/") ? (
+                      <span>{fileName}</span>
+                    ) : (
+                      <>
+                        <BiVideoPlus />
+                        <span>Video</span>
+                      </>
+                    )}
+                  </label>
                   <Button
                     type="submit"
                     title="Post"
                     containerStyle="bg-[#fff242] text-black py-1 px-6 rounded-full font-semibold text-sm"
                   />
-                )}
-              </div>
-            </form>
+                </div>
+              </form>
+            )}
 
             {isLoadPost ? (
               <Loading />
@@ -413,18 +429,14 @@ const Home = () => {
                     </Link>
 
                     <div className="flex items-center gap-1">
-                      {suggestFriends.map((friend) => {
-                        return (
-                          <Button
-                            key={friend._id}
-                            title="Add"
-                            containerStyle="w-[60px] bg-[#fff242] text-xs text-black px-2 py-2 rounded-full"
-                            onClick={() => {
-                              sendFriendRequest(friend._id);
-                            }}
-                          />
-                        );
-                      })}
+                      <Button
+                        key={friends._id}
+                        title="Add"
+                        containerStyle="w-[60px] bg-[#fff242] text-xs text-black px-2 py-2 rounded-full"
+                        onClick={() => {
+                          sendFriendRequest(friends._id);
+                        }}
+                      />
                     </div>
                   </div>
                 ))}

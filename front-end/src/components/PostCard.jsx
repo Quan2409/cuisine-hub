@@ -53,6 +53,14 @@ const PostCard = ({ post, user, deletePost, likePost }) => {
     }
   };
 
+  const handlePlay = () => {
+    console.log("Video đang phát");
+  };
+
+  const handlePause = () => {
+    console.log("Video đã tạm dừng");
+  };
+
   return (
     <div className="mb-2 bg-primaryColor p-4 rounded-xl">
       <div className="flex gap-3 items-center mb-2">
@@ -100,12 +108,28 @@ const PostCard = ({ post, user, deletePost, likePost }) => {
             ))}
         </p>
 
-        {post.image && (
-          <img
-            src={post.image}
-            alt="post-image"
-            className="w-full mt-2 rounded-lg"
-          />
+        {post.media && (
+          <>
+            {/\.(jpe?g|png|gif|bmp|svg|webp)$/i.test(post.media) ? (
+              <img
+                src={post.media}
+                alt="Image"
+                className="w-full mt-2 rounded-lg"
+              />
+            ) : /\.(mp4|webm|ogg|mov|avi|mkv)$/i.test(post.media) ? (
+              <video
+                controls
+                onPlay={handlePlay}
+                onPause={handlePause}
+                className="w-1/2 mx-auto mt-2 rounded-lg"
+              >
+                <source src={post.media} type="video/mp4" />
+                Browser does not support the video tag
+              </video>
+            ) : (
+              <p>Unsupported media format</p>
+            )}
+          </>
         )}
       </div>
 

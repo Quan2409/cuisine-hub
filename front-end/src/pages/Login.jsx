@@ -152,11 +152,11 @@ const Login = () => {
               className="w-48 xxl:w-64 h-48 xxl:h-64 rounded-full"
             />
           </div>
-          <div className="mt-16 text-center">
-            <p className="text-white text-base">
+          <div className="mt-16 text-center text-black">
+            <p className=" text-base">
               Connect people to share all delicious recipes
             </p>
-            <span className="text-sm text-white/80">
+            <span className="text-sm ">
               Share recipes with friend and the world
             </span>
           </div>

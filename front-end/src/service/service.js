@@ -46,14 +46,17 @@ const handleUpload = async (file) => {
   formData.append("file", file);
   formData.append("upload_preset", "cuisinehub");
 
-  try {
-    console.log(import.meta.env.VITE_CLOUDINARY_NAME);
-    const response = await axios.post(
-      `https://api.cloudinary.com/v1_1/${
+  const isVideo = file.type.startsWith("video/");
+  const endpoint = isVideo
+    ? `https://api.cloudinary.com/v1_1/${
         import.meta.env.VITE_CLOUDINARY_NAME
-      }/image/upload`,
-      formData
-    );
+      }/video/upload`
+    : `https://api.cloudinary.com/v1_1/${
+        import.meta.env.VITE_CLOUDINARY_NAME
+      }/image/upload`;
+
+  try {
+    const response = await axios.post(endpoint, formData);
     return response.data.secure_url;
   } catch (error) {
     console.log(error);

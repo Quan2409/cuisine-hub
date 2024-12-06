@@ -67,7 +67,6 @@ const CommentForm = ({
                   }
                 : cmt
             );
-            console.log(updateComment);
             setReplyComment(0);
             return updateComment;
           });

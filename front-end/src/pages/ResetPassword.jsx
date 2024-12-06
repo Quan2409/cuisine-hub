@@ -17,6 +17,9 @@ const ResetPassword = () => {
   const [errMsg, setErrMsg] = useState("");
   const [isSubmit, setIsSubmit] = useState(false);
 
+  // regex for email: enter right email format
+  const emailRegex = /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/;
+
   const onSubmit = async (data) => {
     setIsSubmit(true);
     try {
@@ -25,8 +28,6 @@ const ResetPassword = () => {
         method: "POST",
         data: data,
       });
-      console.log(respone);
-
       if (respone.status === false) {
         setErrMsg(respone);
       } else {
@@ -62,7 +63,7 @@ const ResetPassword = () => {
             register={register("email", {
               required: "Email Address is required",
               pattern: {
-                value: /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/,
+                value: emailRegex,
                 message: "Email is wrong format",
               },
             })}

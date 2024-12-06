@@ -5,14 +5,11 @@ import { useDispatch, useSelector } from "react-redux";
 import { Link, useNavigate } from "react-router-dom";
 import qs from "qs";
 
-import { themeSlice } from "../redux/slice/themeSlice";
-import { userSlice } from "../redux/slice/userSlice";
-import { postSlice } from "../redux/slice/postSlice";
-
-import { sendRequest } from "../service/service.js";
-
 import TextInput from "./TextInput";
 import Button from "./Button";
+
+import { themeSlice } from "../redux/slice/themeSlice";
+import { userSlice } from "../redux/slice/userSlice";
 
 const { setTheme } = themeSlice.actions;
 const { logout } = userSlice.actions;
@@ -25,8 +22,6 @@ const TopBar = () => {
   } = useForm({ mode: "onChange" });
 
   const { theme } = useSelector((state) => state.theme);
-  const { user } = useSelector((state) => state.user);
-  const { getPosts } = postSlice.actions;
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
@@ -55,11 +50,23 @@ const TopBar = () => {
         className="hidden md:flex items-center justify-center"
         onSubmit={handleSubmit(handleSearch)}
       >
-        <TextInput
-          placeholder="Search..."
-          styles="w-[18rem] lg:w-[38rem] rounded-l-full py-3 "
-          register={register("search")}
-        />
+        <div className="relative">
+          <TextInput
+            name="search"
+            type="text"
+            placeholder="Search..."
+            styles="w-[18rem] lg:w-[32rem] rounded-l-full py-2 px-4 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-yellow-400"
+            register={register("search", {
+              required: "Please enter a search term",
+            })}
+          />
+          {errors.search && (
+            <span className="absolute top-full mt-1 text-xs text-[#f64949fe]">
+              {errors.search.message}
+            </span>
+          )}
+        </div>
+
         <Button
           title="Search"
           type="submit"

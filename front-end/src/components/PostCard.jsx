@@ -1,5 +1,4 @@
-import { useEffect, useState } from "react";
-import { useSelector } from "react-redux";
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import { BiLike, BiSolidLike, BiComment } from "react-icons/bi";
 import { MdOutlineDeleteOutline } from "react-icons/md";
@@ -110,13 +109,13 @@ const PostCard = ({ post, user, deletePost, likePost }) => {
 
         {post.media && (
           <>
-            {/\.(jpe?g|png|gif|bmp|svg|webp)$/i.test(post.media) ? (
+            {/\.(jpe?g|png|bmp|svg|webp)$/i.test(post.media) ? (
               <img
                 src={post.media}
                 alt="Image"
                 className="w-full mt-2 rounded-lg"
               />
-            ) : /\.(mp4|webm|ogg|mov|avi|mkv)$/i.test(post.media) ? (
+            ) : /\.(mp4|webm)$/i.test(post.media) ? (
               <video
                 controls
                 onPlay={handlePlay}

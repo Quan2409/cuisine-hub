@@ -5,8 +5,6 @@ import moment from "moment";
 import { sendRequest } from "../service/service";
 
 const ReplyCard = ({ comment, setComments, user, reply }) => {
-  console.log(reply);
-
   const likeReply = async (id) => {
     try {
       const response = await sendRequest({
@@ -23,7 +21,7 @@ const ReplyCard = ({ comment, setComments, user, reply }) => {
                   r._id === id
                     ? {
                         ...r,
-                        likes: response.data.$set["replies.$.likes"],
+                        likes: response.data.likes,
                       }
                     : r
                 ),

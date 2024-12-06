@@ -24,6 +24,9 @@ const Login = () => {
   const [isSubmit, setIsSubmit] = useState(false);
   const dispatch = useDispatch();
 
+  // regex for email: enter right email format
+  const emailRegex = /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/;
+
   const onSubmit = async (data) => {
     setIsSubmit(true);
 
@@ -80,7 +83,7 @@ const Login = () => {
               register={register("email", {
                 required: "Email Address is required",
                 pattern: {
-                  value: /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/,
+                  value: emailRegex,
                   message: "Email is wrong format",
                 },
               })}

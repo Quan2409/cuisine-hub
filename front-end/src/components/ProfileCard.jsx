@@ -1,9 +1,8 @@
-import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { Link, useParams } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { LiaEdit } from "react-icons/lia";
 import { CiLocationOn } from "react-icons/ci";
-import { BsPersonFillAdd, BsBriefcase } from "react-icons/bs";
+import { BsBriefcase } from "react-icons/bs";
 import moment from "moment";
 
 import { userSlice } from "../redux/slice/userSlice";
@@ -12,7 +11,6 @@ const { updateProfile } = userSlice.actions;
 
 const ProfileCard = ({ user }) => {
   const { user: data } = useSelector((state) => state.user);
-  const [loading, setLoading] = useState(false);
   const dispatch = useDispatch();
 
   return (
@@ -40,12 +38,6 @@ const ProfileCard = ({ user }) => {
               onClick={() => dispatch(updateProfile(true))}
             />
           ) : (
-            // <button
-            //   className="bg-[#0444a430] text-sm text-white p-2 rounded"
-            //   onClick={() => dispatch(updateProfile(false))}
-            // >
-            //   <BsPersonFillAdd size={22} className="text-yellow" />
-            // </button>
             ""
           )}
         </div>
@@ -66,11 +58,6 @@ const ProfileCard = ({ user }) => {
         <p className="text-xl text-ascent-1 font-semibold">
           {user.friends?.length} Friends
         </p>
-
-        <div className="flex items-center justify-between">
-          <span className="text-ascent-2">Who viewd your profile</span>
-          <span className="text-ascent-1 text-lg">{user.views?.length}</span>
-        </div>
 
         <div className="flex items-center justify-between">
           <span className="text-ascent-2">Joined</span>

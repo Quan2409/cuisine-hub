@@ -19,11 +19,18 @@ const Register = () => {
 
   const [errMsg, setErrMsg] = useState("");
   const [isSubmit, setIsSubmit] = useState(false);
-  const dispatch = useDispatch();
+
+  // regex for name: no contain special character & whitespace
+  const nameRegex = /^[a-zA-Z0-9]+([a-zA-Z0-9\s]*[a-zA-Z0-9]+)*$/;
+
+  // regex for email: enter right email format
+  const emailRegex = /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/;
+
+  // regex for password: no contain whitespace
+  const passwordRegex = /^\S+$/;
 
   const onSubmit = async (data) => {
     setIsSubmit(true);
-
     try {
       const response = await sendRequest({
         url: "/auth/register",
@@ -61,7 +68,6 @@ const Register = () => {
           </div>
 
           <form
-            action=""
             className="py-8 flex flex-col gap-5"
             onSubmit={handleSubmit(onSubmit)}
           >
@@ -74,8 +80,9 @@ const Register = () => {
                 register={register("firstName", {
                   required: "First Name is required",
                   pattern: {
-                    value: /^[a-zA-Z0-9\s]+$/,
-                    message: "First Name must not contain special characters",
+                    value: nameRegex,
+                    message:
+                      "First Name must not contain special characters or start/end with spaces",
                   },
                 })}
                 styles="w-full rounded"
@@ -91,8 +98,9 @@ const Register = () => {
                 register={register("lastName", {
                   required: "Last Name is required",
                   pattern: {
-                    value: /^[a-zA-Z0-9\s]+$/,
-                    message: "Last Name must not contain special characters",
+                    value: nameRegex,
+                    message:
+                      "Last Name must not contain special characters or start/end with spaces",
                   },
                 })}
                 styles="w-full rounded"
@@ -109,7 +117,7 @@ const Register = () => {
               register={register("email", {
                 required: "Email is required",
                 pattern: {
-                  value: /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/,
+                  value: emailRegex,
                   message: "Email is wrong format",
                 },
               })}
@@ -130,7 +138,7 @@ const Register = () => {
                   message: "Password must be at least 6 characters",
                 },
                 pattern: {
-                  value: /^\S+$/,
+                  value: passwordRegex,
                   message: "Password must not contain white spaces",
                 },
               })}
@@ -197,11 +205,11 @@ const Register = () => {
               className="w-48 xxl:w-64 h-48 xxl:h-64 rounded-full"
             />
           </div>
-          <div className="mt-16 text-center">
-            <p className="text-white text-base">
+          <div className="mt-16 text-center text-black">
+            <p className="text-base">
               Connect people to share all delicious recipes
             </p>
-            <span className="text-sm text-white/80">
+            <span className="text-sm">
               Share recipes with friend and the world
             </span>
           </div>

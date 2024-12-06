@@ -23,12 +23,6 @@ const { login } = userSlice.actions;
 const Home = () => {
   const [friendsRequest, setFriendRequest] = useState([]);
   const [suggestFriends, setSuggestFriend] = useState([]);
-  const [haveSentRequest, setHaveSendRequest] = useState([]);
-
-  // friendsRequest.forEach((fr, index) => {
-  //   console.log(`Friend Request [${index}]:`, fr.request_receiver);
-  // });
-
   const [errMsg, setErrMsg] = useState("");
   const [fileName, setFilenName] = useState("");
   const [file, setFile] = useState(null);

@@ -1,4 +1,3 @@
-const { response } = require("express");
 const postModal = require("../models/post-model");
 const userModal = require("../models/user-model");
 const commentModal = require("../models/comments-model");
@@ -6,10 +5,10 @@ const commentModal = require("../models/comments-model");
 const postController = {
   // creat-post
   createPost: async (req, res, next) => {
-    try {
-      const { userId } = req.body.user;
+    const { userId } = req.body.user;
+    const { content, media } = req.body;
 
-      const { content, image } = req.body;
+    try {
       if (!content) {
         next("Enter some content, please");
         return;
@@ -17,10 +16,9 @@ const postController = {
       const post = await postModal.create({
         userId,
         content,
-        image,
+        media,
         createdAt: Date.now(),
       });
-      console.log(userId);
       return res.status(201).json({
         status: true,
         message: "Post is created",

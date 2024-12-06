@@ -7,10 +7,4 @@
 - Front-End: React, TailwindCSS
 - Back-End: Express (Node.js)
 - Database: MongoDB
-- Cloud Hosting: Render, Cloudinary
-
-**Development Note**: To install and run the application, follow these step:
-
-- Step 01: ...
-- Step 02: ...
-- Step 03: ...
+- Media Cloud Hosting: Cloudinary

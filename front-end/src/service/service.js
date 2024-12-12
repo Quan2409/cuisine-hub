@@ -28,19 +28,6 @@ const sendRequest = async ({ url, token, data, method = "GET" }) => {
   }
 };
 
-const viewProfile = async (id, token) => {
-  try {
-    const response = await sendRequest("/user/view-profile", {
-      method: "POST",
-      token: token,
-      body: { id },
-    });
-    return response;
-  } catch (error) {
-    console.log(error);
-  }
-};
-
 const handleUpload = async (file) => {
   const formData = new FormData();
   formData.append("file", file);

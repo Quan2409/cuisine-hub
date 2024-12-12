@@ -4,7 +4,7 @@ const authMiddleware = async (req, res, next) => {
   const authHeader = req.headers.authorization;
 
   if (!authHeader || !authHeader.startsWith("Bearer")) {
-    next("Authentication Failed");
+    next("Authentication Failed haha");
     return;
   }
 
@@ -17,8 +17,16 @@ const authMiddleware = async (req, res, next) => {
     };
     next();
   } catch (error) {
-    console.log(error);
-    next("Authentication Failed");
+    if (error.name === "TokenExpiredError") {
+      return res.status(401).json({
+        status: false,
+        message: "Token expired. Please log in again.",
+      });
+    }
+    return res.status(401).json({
+      status: false,
+      message: "Authentication Failed",
+    });
   }
 };
 

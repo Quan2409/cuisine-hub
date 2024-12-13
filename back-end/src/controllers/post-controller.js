@@ -63,11 +63,6 @@ const postController = {
     const { search } = req.body;
 
     try {
-      const isUserExits = await userModal.findById(userId);
-      const friends = isUserExits.friends.toString().split(",") ?? [];
-      console.log(friends);
-      friends.push(userId);
-
       let searchQuery = {};
       if (search) {
         // create condition to search based on user information
@@ -371,7 +366,10 @@ const postController = {
       }
 
       const userInfo = await userModal.findById(userId);
-      const commentRecord = await commentModal.findById(id);
+      const commentRecord = await commentModal.findById(id).populate({
+        path: "replies.userId",
+        select: "firstName lastName location profession avatar -password",
+      });
       commentRecord.replies.push({
         comment,
         replyAt,

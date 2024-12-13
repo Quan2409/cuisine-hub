@@ -398,15 +398,13 @@ const userController = {
       // get recvie or sent request
       const sentFriendRequests = await friendModal
         .find({ request_from: userId })
-        .select("request_receiver")
-        .lean();
+        .select("request_receiver");
 
       const receivedFriendRequests = await friendModal
         .find({ request_receiver: userId })
-        .select("request_from")
-        .lean();
+        .select("request_from");
 
-      // Chuyển đổi danh sách ID thành một mảng các ID cần loại trừ
+      // Convert the list of IDs into an array of IDs to exclude
       const excludeIds = [
         userId,
         ...sentFriendRequests.map((fr) => fr.request_receiver),
@@ -419,13 +417,13 @@ const userController = {
         friends: { $nin: userId },
       };
 
-      // query to get 15 user include personal information.
+      // query to get 10 user include personal information.
       let queryResults = userModal
         .find(queryObject)
-        .limit(15)
+        .limit(10)
         .select("firstName lastName avatar location profession -password");
-
       const suggestedFriends = await queryResults;
+
       if (suggestedFriends.length === 0) {
         return res.status(200).json({ status: true, friends: [] });
       } else {

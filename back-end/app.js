@@ -52,7 +52,7 @@ app.use((req, res, next) => {
 });
 
 // http server
-const port = 3500;
+const port = 10000;
 app.listen(port, "0.0.0.0", () => {
   console.log(`HTTP server is running on: http://localhost:${port}`);
 });

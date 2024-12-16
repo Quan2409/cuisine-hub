@@ -9,9 +9,9 @@ import { sendRequest } from "../service/service";
 
 const CommentForm = ({
   user,
+  postId,
   id,
   replyAt,
-  comment,
   setReplyComment,
   setComments,
 }) => {
@@ -32,12 +32,14 @@ const CommentForm = ({
     setErrMsg("");
 
     try {
-      const url = replyAt ? `/post/reply-comment/${id}` : `/post/comment/${id}`;
+      const url = replyAt
+        ? `/post/reply-comment/${id}`
+        : `/post/comment/${postId}`;
 
       const newData = {
         comment: data.comment,
-        from: user.firstName + " " + user.lastName,
-        replyAt: replyAt,
+        userId: user._id,
+        from: `${user.firstName} ${user.lastName}`,
       };
 
       const response = await sendRequest({
@@ -47,42 +49,69 @@ const CommentForm = ({
         method: "POST",
       });
 
-      console.log(response);
+      console.log(response.data);
 
       if (response.status === false) {
-        setErrMsg(response);
-      } else {
-        reset({
-          comment: "",
-        });
-        setErrMsg("");
-        if (replyAt) {
-          setComments((prevComments) => {
-            const updateComment = prevComments.map((cmt) =>
-              cmt._id === comment._id
-                ? {
-                    ...cmt,
-                    replies: response.data.replies,
-                    userId: response.data.userId,
-                  }
-                : cmt
-            );
-            setReplyComment(0);
-            return updateComment;
-          });
-        } else {
-          setComments((prevComments) => [...prevComments, response.comment]);
-        }
+        setErrMsg(response.message);
+        setLoading(false);
+        return;
       }
+
+      const { data: newComment, data: replies } = response;
+      const updateReplies = (comments, replyId, replyData) => {
+        const updatedComments = comments.map((comment) => {
+          // Nếu comment hiện tại trùng với replyId, cập nhật replies
+          if (comment._id === replyId) {
+            return {
+              ...comment,
+              replies: [
+                ...(comment.replies || []), // Nếu không có replies thì tạo mảng rỗng
+                {
+                  ...replyData,
+                  userId: replyData.userId || comment.userId, // Sử dụng đúng userId của replyData
+                },
+              ],
+            };
+          }
+
+          // Nếu comment có replies, cần phải tiếp tục đệ quy
+          if (Array.isArray(comment.replies) && comment.replies.length > 0) {
+            return {
+              ...comment,
+              replies: updateReplies(comment.replies, replyId, replyData), // Đệ quy để cập nhật replies
+            };
+          }
+
+          return comment; // Trả lại comment gốc nếu không thay đổi
+        });
+
+        return updatedComments;
+      };
+
+      setComments((prevComments) => {
+        if (id) {
+          const updatedComments = updateReplies(prevComments, id, replies);
+          console.log(updatedComments);
+
+          // Trả lại danh sách bình luận đã được cập nhật
+          return updatedComments;
+        } else {
+          return [...prevComments, newComment];
+        }
+      });
+
+      setReplyComment(0);
+      reset({ comment: "" });
       setLoading(false);
     } catch (error) {
       console.log(error);
       setLoading(false);
+      setErrMsg("Something went wrong. Please try again.");
     }
   };
 
   return (
-    <div>
+    <>
       <form
         onSubmit={handleSubmit(onSubmit)}
         className="w-full border-b border-[#66666645]"
@@ -97,7 +126,7 @@ const CommentForm = ({
           <TextInput
             name="comment"
             styles="w-full rounded-full py-3"
-            placeholder={replyAt ? `Reply ${replyAt}` : "Comment this post"}
+            placeholder={replyAt ? `Reply ${id}` : "Comment this post"}
             register={register("comment", {
               required: "Comment cannot be empty",
             })}
@@ -125,7 +154,7 @@ const CommentForm = ({
           )}
         </div>
       </form>
-    </div>
+    </>
   );
 };
 

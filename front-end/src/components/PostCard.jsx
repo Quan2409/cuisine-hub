@@ -8,10 +8,13 @@ import CommentForm from "./CommentForm";
 import ReplyCard from "./ReplyCard";
 
 import { sendRequest } from "../service/service";
+import CommentCard from "./CommentCard";
+import Loading from "./Loading";
 
 const PostCard = ({ post, user, deletePost, likePost }) => {
   const [showAll, setShowAll] = useState(0);
   const [showReply, setShowReply] = useState(0);
+  const [showRepliesChild, setShowRepliesChild] = useState({});
   const [showComments, setShowComments] = useState(0);
   const [comment, setComments] = useState([]);
   const [replyComments, setReplyComment] = useState(0);
@@ -28,6 +31,52 @@ const PostCard = ({ post, user, deletePost, likePost }) => {
     } catch (error) {
       console.log(error);
     }
+  };
+
+  const toggleReplies = (replyId) => {
+    setShowRepliesChild((prevState) => {
+      const updatedState = {
+        ...prevState,
+        [replyId]: !prevState[replyId],
+      };
+      return updatedState;
+    });
+  };
+
+  // Hàm render đệ quy để xử lý các replies
+  const renderReplies = (replies, parentId, level = 0) => {
+    return replies?.map((reply) => (
+      <div key={reply._id} style={{ marginLeft: `${level * 50}px` }}>
+        <ReplyCard
+          reply={reply}
+          user={user}
+          comment={comment}
+          setComments={setComments}
+          replyComments={replyComments}
+          setReplyComment={setReplyComment}
+          parentId={parentId}
+          level={level} // Gửi level xuống mỗi ReplyCard
+        />
+
+        {/* Hiển thị "Show Replies" hoặc "Hide Replies" cho reply con */}
+        {reply?.replies && reply?.replies?.length > 0 && (
+          <div className="py-2 px-8 mt-3 ml-8">
+            <div
+              className="text-base text-ascent-1 cursor-pointer"
+              onClick={() => toggleReplies(reply._id)} // Toggle trạng thái của reply con
+            >
+              {showRepliesChild[reply._id]
+                ? `Hide Replies`
+                : `Show Replies (${reply.replies.length})`}
+            </div>
+
+            {/* Hiển thị các reply con nếu showRepliesState[reply._id] là true */}
+            {showRepliesChild[reply._id] &&
+              renderReplies(reply.replies, level + 1)}
+          </div>
+        )}
+      </div>
+    ));
   };
 
   const likeComment = async (id) => {
@@ -113,14 +162,14 @@ const PostCard = ({ post, user, deletePost, likePost }) => {
               <img
                 src={post.media}
                 alt="Image"
-                className="w-full mt-2 rounded-lg"
+                className="w-full max-h-[500px] mt-2 object-contain rounded-lg"
               />
             ) : /\.(mp4|webm)$/i.test(post.media) ? (
               <video
                 controls
                 onPlay={handlePlay}
                 onPause={handlePause}
-                className="w-1/2 mx-auto mt-2 rounded-lg"
+                className="w-full h-[400px] mt-2 object-contain rounded-lg"
               >
                 <source src={post.media} type="video/mp4" />
                 Browser does not support the video tag
@@ -169,52 +218,57 @@ const PostCard = ({ post, user, deletePost, likePost }) => {
 
       {showComments === post._id && (
         <div className="w-full mt-4 border-t border-[#66666645] pt-4">
-          <CommentForm user={user} id={post._id} setComments={setComments} />
+          <CommentForm
+            user={user}
+            postId={post._id}
+            setComments={setComments}
+            setReplyComment={setReplyComment}
+          />
 
           {isLoad ? (
             <Loading />
           ) : comment.length > 0 ? (
-            comment.map((comment) => (
+            comment?.map((comment) => (
               <div key={comment._id} className="w-full py-4">
                 <div className="flex gap-3 items-center mb-1">
-                  <Link to={"/profile/" + comment.userId}>
+                  <Link to={"/profile/" + comment?.userId?._id}>
                     <img
-                      src={comment.userId?.avatar ?? "/user.png"}
-                      alt={comment.userId?.firstName}
+                      src={comment?.userId?.avatar ?? "/user.png"}
+                      alt={comment?.userId?.firstName}
                       className="w-14 h-14 rounded-full object-cover"
                     />
                   </Link>
                   <div>
-                    <Link to={"/profile/" + comment.userId}>
+                    <Link to={"/profile/" + comment?.userId}>
                       <p className="fotn-medium text-base text-ascent-1">
-                        {comment.userId.firstName} {comment.userId.lastName}
+                        {comment?.userId?.firstName} {comment?.userId?.lastName}
                       </p>
                     </Link>
                     <span className="text-ascent-2 text-sm">
-                      {moment(comment.createdAt).fromNow()}
+                      {moment(comment?.createdAt).fromNow()}
                     </span>
                   </div>
                 </div>
 
                 <div className="ml-16">
-                  <p className="text-ascent-2">{comment.comment}</p>
+                  <p className="text-ascent-2">{comment?.comment}</p>
                   <div className="mt-2 flex gap-6">
                     <div
                       className="flex gap-2 items-center text-base text-ascent-2 cursor pointer"
                       onClick={() => likeComment(comment._id)}
                     >
-                      {comment.likes.includes(user._id) ? (
+                      {comment?.likes?.includes(user._id) ? (
                         <BiSolidLike size={20} color="yellow" />
                       ) : (
                         <BiLike size={20} />
                       )}
-                      {comment.likes.length} Likes
+                      {comment?.likes?.length} Likes
                     </div>
                     <span
                       className="text-yellow cursor-pointer"
                       onClick={() =>
                         setReplyComment((prev) =>
-                          prev === comment._id ? 0 : comment._id
+                          prev === comment?._id ? 0 : comment?._id
                         )
                       }
                     >
@@ -222,20 +276,21 @@ const PostCard = ({ post, user, deletePost, likePost }) => {
                     </span>
                   </div>
 
-                  {replyComments === comment._id && (
+                  {replyComments === comment?._id && (
                     <CommentForm
                       user={user}
                       id={comment._id}
-                      replyAt={comment.from}
+                      replyAt={comment.parentId || comment._id}
                       comment={comment}
                       setComments={setComments}
+                      replyComments={replyComments}
                       setReplyComment={setReplyComment}
                     />
                   )}
                 </div>
 
                 <div className="py-2 px-8 mt-3 ml-8">
-                  {comment.replies.length > 0 && (
+                  {comment?.replies?.length > 0 && (
                     <div
                       className="text-base text-ascent-1 cursor-pointer"
                       onClick={() =>
@@ -249,17 +304,9 @@ const PostCard = ({ post, user, deletePost, likePost }) => {
                         : `Show Replies (${comment.replies.length})`}
                     </div>
                   )}
-
+                  {/* Hiển thị các reply khi showReply trùng với comment._id */}
                   {showReply === comment._id &&
-                    comment.replies.map((reply) => (
-                      <ReplyCard
-                        key={reply._id}
-                        reply={reply}
-                        user={user}
-                        comment={comment}
-                        setComments={setComments}
-                      />
-                    ))}
+                    renderReplies(comment.replies, 1)}
                 </div>
               </div>
             ))

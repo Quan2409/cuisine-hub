@@ -154,7 +154,7 @@ const Home = () => {
         method: "POST",
         data: { request_receiver: id },
       });
-      console.log(response);
+      window.confirm("You have send a friend request");
     } catch (error) {
       console.log(error);
     }
@@ -222,7 +222,7 @@ const Home = () => {
           {/* left-side */}
           <div className="hidden w-1/3 h-full lg:w-1/4 md:flex flex-col gap-6 overflow-y-auto">
             <ProfileCard user={user} />
-            <FriendCard friends={user.friends} />
+            <FriendCard user={user} friends={user.friends} />
           </div>
 
           {/* center-side */}

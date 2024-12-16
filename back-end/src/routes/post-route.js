@@ -14,7 +14,7 @@ router.get("/:id", authMiddleware, postController.getPostById);
 router.get("/get-user-post/:id", authMiddleware, postController.getUserPosts);
 
 // get-comment
-router.get("/get-comment/:postId", postController.getComments);
+router.get("/get-comment/:postId", postController.getCommentsTree);
 
 // like post
 router.post("/like/:id", authMiddleware, postController.likePosts);

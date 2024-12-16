@@ -11,6 +11,12 @@ const commentSchema = new mongoose.Schema({
     ref: "posts",
   },
 
+  parentId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "comments", // Liên kết đến comment cha
+    default: null, // Null nếu là bình luận cấp 1
+  },
+
   comment: {
     type: String,
     required: true,
@@ -26,46 +32,56 @@ const commentSchema = new mongoose.Schema({
     type: String,
   },
 
-  replies: [
-    {
-      replyId: {
-        type: mongoose.Schema.Types.ObjectId,
-      },
+  createdAt: {
+    type: Date,
+    default: Date.now,
+  },
 
-      userId: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "users",
-      },
+  updatedAt: {
+    type: Date,
+    default: Date.now,
+  },
 
-      from: {
-        type: String,
-      },
+  // replies: [
+  //   {
+  //     replyId: {
+  //       type: mongoose.Schema.Types.ObjectId,
+  //     },
 
-      replyAt: {
-        type: String,
-      },
+  //     userId: {
+  //       type: mongoose.Schema.Types.ObjectId,
+  //       ref: "users",
+  //     },
 
-      comment: {
-        type: String,
-      },
+  //     from: {
+  //       type: String,
+  //     },
 
-      likes: [
-        {
-          type: String,
-        },
-      ],
+  //     replyAt: {
+  //       type: String,
+  //     },
 
-      createdAt: {
-        type: Date,
-        default: Date.now(),
-      },
+  //     comment: {
+  //       type: String,
+  //     },
 
-      updateAt: {
-        type: Date,
-        default: Date.now(),
-      },
-    },
-  ],
+  //     likes: [
+  //       {
+  //         type: String,
+  //       },
+  //     ],
+
+  //     createdAt: {
+  //       type: Date,
+  //       default: Date.now(),
+  //     },
+
+  //     updateAt: {
+  //       type: Date,
+  //       default: Date.now(),
+  //     },
+  //   },
+  // ],
 });
 
 const commentModal = mongoose.model("comment", commentSchema);

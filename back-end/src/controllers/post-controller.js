@@ -169,38 +169,72 @@ const postController = {
     }
   },
 
-  // get comments
-  getComments: async (req, res) => {
+  // get comments tree
+  // getComments: async (req, res) => {
+  //   const { postId } = req.params;
+  //   try {
+  //     const hasComment = await commentModal
+  //       .find({ postId })
+  //       .populate({
+  //         path: "userId",
+  //         select: "firstName lastName location profession avatar -password",
+  //       })
+  //       .populate({
+  //         path: "replies.userId",
+  //         select: "firstName lastName location profession avatar -password",
+  //       })
+  //       .sort({ _id: 1 });
+
+  //     if (!hasComment || hasComment.length === 0) {
+  //       return res.status(400).json({
+  //         status: false,
+  //         message: "No comments found for post " + postId,
+  //       });
+  //     }
+
+  //     if (hasComment) {
+  //       return res.status(200).json({
+  //         status: true,
+  //         message: "This is comments of post " + postId,
+  //         data: hasComment,
+  //       });
+  //     }
+  //   } catch (error) {
+  //     return res.status(404).json({
+  //       message: error.message,
+  //     });
+  //   }
+  // },
+  getCommentsTree: async (req, res) => {
     const { postId } = req.params;
+
     try {
-      const hasComment = await commentModal
+      const comments = await commentModal
         .find({ postId })
         .populate({
           path: "userId",
-          select: "firstName lastName location profession avatar -password",
+          select: "firstName lastName avatar", // Lấy các trường cần thiết
         })
-        .populate({
-          path: "replies.userId",
-          select: "firstName lastName location profession avatar -password",
-        })
-        .sort({ _id: 1 });
+        .lean();
 
-      if (!hasComment || hasComment.length === 0) {
-        return res.status(400).json({
-          status: false,
-          message: "No comments found for post " + postId,
-        });
-      }
+      const buildTree = (parentId = null, level = 0) => {
+        return comments
+          .filter((comment) => String(comment.parentId) === String(parentId))
+          .map((comment) => ({
+            ...comment,
+            replies: buildTree(comment._id, level + 1),
+          }));
+      };
 
-      if (hasComment) {
-        return res.status(200).json({
-          status: true,
-          message: "This is comments of post " + postId,
-          data: hasComment,
-        });
-      }
+      const commentsTree = buildTree();
+
+      res.status(200).json({
+        status: true,
+        data: commentsTree,
+      });
     } catch (error) {
-      return res.status(404).json({
+      res.status(500).json({
+        status: false,
         message: error.message,
       });
     }
@@ -244,7 +278,7 @@ const postController = {
   commentPost: async (req, res, next) => {
     const { comment, from } = req.body;
     const { userId } = req.body.user;
-    const { id } = req.params;
+    const { id } = req.params; // post id
 
     try {
       if (!comment) {
@@ -254,26 +288,37 @@ const postController = {
         });
       }
 
-      const userInfo = await userModal.findById(userId);
-      const postInfo = await postModal.findById(id);
-
-      // query to create a new a comment
+      // Tạo comment cấp 1
       const newComment = await commentModal.create({
-        userId: userInfo,
+        userId,
         postId: id,
         comment,
         from,
       });
-      postInfo.comments.push(newComment._id);
-      await postInfo.save();
+
+      await postModal.findByIdAndUpdate(id, {
+        $push: {
+          comments: newComment._id,
+        },
+      });
+
+      // Populate thông tin userId cho comment vừa tạo
+      const populatedComment = await commentModal
+        .findById(newComment._id)
+        .populate({
+          path: "userId", // populate thông tin người dùng
+          select: "firstName lastName avatar", // Lấy các trường cần thiết
+        })
+        .lean();
 
       return res.status(201).json({
         status: true,
-        message: "Comment is created in post " + postInfo._id,
-        comment: newComment,
+        message: "Comment is created in post " + id,
+        data: populatedComment,
       });
     } catch (error) {
       return res.status(404).json({
+        status: false,
         message: error.message,
       });
     }
@@ -353,8 +398,8 @@ const postController = {
 
   // reply comment
   replyComment: async (req, res, next) => {
-    const { userId } = req.body.user;
-    const { comment, replyAt, from } = req.body;
+    // const { userId } = req.body.user;
+    const { comment, from, userId } = req.body;
     const { id } = req.params;
 
     try {
@@ -365,24 +410,37 @@ const postController = {
         });
       }
 
-      const userInfo = await userModal.findById(userId);
-      const commentRecord = await commentModal.findById(id).populate({
-        path: "replies.userId",
-        select: "firstName lastName location profession avatar -password",
-      });
-      commentRecord.replies.push({
+      // Kiểm tra comment cha tồn tại
+      const parentComment = await commentModal.findById(id);
+      if (!parentComment) {
+        return res.status(404).json({
+          status: false,
+          message: "Parent comment not found",
+        });
+      }
+
+      const newReply = await commentModal.create({
+        userId,
+        postId: parentComment.postId, // Gán postId của comment cha
         comment,
-        replyAt,
         from,
-        userId: userInfo,
-        createdAt: Date.now(),
+        parentId: id, // Gán parentId là ID của comment cha
       });
-      await commentRecord.save();
+
+      const userInfo = await userModal
+        .findById(userId)
+        .select("firstName lastName avatar");
+
+      // Cập nhật dữ liệu trả về, thêm thông tin người dùng vào reply
+      const replyWithUserDetails = {
+        ...newReply._doc, // Lấy toàn bộ dữ liệu của reply
+        userId: userInfo, // Thêm thông tin người dùng vào reply
+      };
 
       return res.status(200).json({
         status: true,
         message: "A reply has created in comment" + id,
-        data: commentRecord,
+        data: replyWithUserDetails,
       });
     } catch (error) {
       return res.status(404).json({

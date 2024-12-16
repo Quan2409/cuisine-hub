@@ -35,6 +35,9 @@ router.get(
 // accept / deny friend request
 router.post("/accept-request", authMiddleware, userController.acceptRequest);
 
+// un-friend request
+router.post("/un-friend", authMiddleware, userController.unFriendUser);
+
 // profile viewer
 router.post("/profile-viewer", authMiddleware, userController.viewProfile);
 

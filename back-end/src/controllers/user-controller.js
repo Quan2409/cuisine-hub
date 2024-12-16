@@ -439,6 +439,54 @@ const userController = {
       });
     }
   },
+
+  // handle unfriend
+  unFriendUser: async (req, res) => {
+    const { userId } = req.body.user;
+    const { friendId } = req.body;
+
+    try {
+      const userRecord = await userModal.findById(userId);
+      const friendRecord = await userModal.findById(friendId);
+
+      if (!userRecord || !friendRecord) {
+        return res.status(400).json({
+          status: false,
+          message: "User or friend not found",
+        });
+      }
+
+      // Loại bỏ người bạn khỏi danh sách bạn bè của cả 2 người
+      userRecord.friends = userRecord.friends.filter(
+        (friend) => friend.toString() !== friendId
+      );
+      friendRecord.friends = friendRecord.friends.filter(
+        (friend) => friend.toString() !== userId
+      );
+
+      // Lưu thay đổi
+      await userRecord.save();
+      await friendRecord.save();
+
+      // Xóa các yêu cầu kết bạn nếu có
+      await friendModal.findOneAndDelete({
+        $or: [
+          { request_from: userId, request_receiver: friendId },
+          { request_from: friendId, request_receiver: userId },
+        ],
+      });
+
+      return res.status(200).json({
+        status: true,
+        message: "Unfriended successfully",
+      });
+    } catch (error) {
+      return res.status(500).json({
+        status: false,
+        message: error.message,
+      });
+    }
+  },
 };
 
 module.exports = { userController };

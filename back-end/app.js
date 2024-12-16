@@ -52,8 +52,8 @@ app.use((req, res, next) => {
 });
 
 // http server
-const port = 10000;
-app.listen(port, "0.0.0.0", () => {
+const port = 3500;
+app.listen(port, () => {
   console.log(`HTTP server is running on: http://localhost:${port}`);
 });
 
